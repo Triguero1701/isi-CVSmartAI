@@ -6,7 +6,7 @@ import os
 import hashlib
 
 # Database path
-project_dir = r"c:\Users\mtrig\vens\CVSmartAi"
+project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 db_dir = os.path.join(project_dir, "database")
 os.makedirs(db_dir, exist_ok=True)
 db_path = os.path.join(db_dir, "cvsmartai.db")
