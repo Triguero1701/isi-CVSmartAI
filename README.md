@@ -109,6 +109,23 @@ Verás que todos los tests pasarán al 100% de manera exitosa cubriendo rutas, r
 
 ---
 
+## 👨‍🏫 Instrucciones para la Evaluación (Profesor)
+
+Por motivos de seguridad, **las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público**. 
+
+Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un error si intentas analizar un PDF real. Sin embargo, el proyecto está preparado para su evaluación de dos formas:
+
+1. **Evaluación de Código y Lógica (Sin Facturación Google):**
+   Puedes ejecutar toda la suite de tests (`pytest backend/tests/ -v`). En el código he implementado un sistema de *Mocks* (`unittest.mock.patch`) que simula la respuesta de los servidores de Google Document AI. **Los tests pasarán en verde con un 100% de éxito demostrando que la API funciona** sin necesidad de crear proyectos ni añadir tarjetas de crédito en Google Cloud.
+
+2. **Evaluación Funcional Completa (Conexión Real):**
+   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real:
+   - Pide al alumno el archivo `service_account.json` y el contenido del archivo `.env` por privado.
+   - Coloca el `.json` en `backend/credentials/` y el `.env` en la carpeta `backend/` (tienes un `backend/.env.example` como guía de las variables requeridas).
+   - Arranca el servidor Flask normal y la API procesará tu petición usando Document AI.
+
+---
+
 ## 📁 Estructura Principal del Proyecto (Resumen)
 
 - `/backend/`: Contiene la API Flask, rutas REST, y las configuraciones de CORS.
