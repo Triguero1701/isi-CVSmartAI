@@ -3,7 +3,9 @@ import os
 from flask import Flask, g
 from flask_cors import CORS
 
-DATABASE = r'c:\Users\mtrig\vens\CVSmartAi\database\cvsmartai.db'
+# Resolve path relative to this file: backend/app/__init__.py -> project root -> database/
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+DATABASE = os.path.join(_PROJECT_ROOT, 'database', 'cvsmartai.db')
 
 def get_db():
     db = getattr(g, '_database', None)
