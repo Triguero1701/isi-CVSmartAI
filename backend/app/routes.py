@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 import time
 from . import get_db
+from .parser import extract_text_from_pdf
 
 api_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
@@ -16,8 +17,13 @@ def analyze_cv():
     if not cv_file or not job_offer_text:
         return jsonify({"status": "error", "error": "cv_file and job_offer_text are required."}), 400
 
-    # Mock timeout reflecting "Document AI" call
-    time.sleep(0.5)
+    # Call Google Document AI OCR
+    cv_bytes = cv_file.read()
+    try:
+        extracted_text = extract_text_from_pdf(cv_bytes)
+    except Exception as e:
+        return jsonify({"status": "error", "error": f"Fallo en analísis OCR (GCloud): {str(e)}"}), 500
+
     processing_time_ms = int((time.time() - start_time) * 1000)
 
     # Guardamos historial si viene user_id válido
@@ -34,6 +40,7 @@ def analyze_cv():
 
     return jsonify({
       "status": "success",
+      "extracted_text_preview": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text,
       "compatibility_score": 75,
       "analysis": {
         "matched_skills": ["React", "JavaScript", "Trabajo en equipo"],

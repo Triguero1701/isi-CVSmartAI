@@ -3,6 +3,7 @@ import sqlite3
 import os
 import tempfile
 import sys
+from unittest.mock import patch
 
 # Ensure backend directory is in the path to import 'app' and 'scripts'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -10,6 +11,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 from app import create_app
 from scripts.setup_db import create_tables
+
+@pytest.fixture(autouse=True)
+def mock_document_ai():
+    """Mocks Google Document AI globally for all tests."""
+    with patch('app.routes.extract_text_from_pdf') as mock_extract:
+        mock_extract.return_value = "Texto del CV extraído correctamente (MOCK)."
+        yield mock_extract
 
 @pytest.fixture
 def app():

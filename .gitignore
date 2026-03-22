@@ -25,6 +25,7 @@ MANIFEST
 
 # Environments
 .env
+backend/credentials/*.json
 .venv
 venv/
 venv.bak/
