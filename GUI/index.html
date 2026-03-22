@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVSmartAI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="gradient-text">CVSmartAI</span>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-target="users-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Users
+                </button>
+                <button class="nav-item" data-target="skills-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    Skills Dictionary
+                </button>
+                <button class="nav-item" data-target="logs-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Analysis Logs
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>Dashboard Overview</h1>
+                <div class="status-indicator">
+                    <span class="dot"></span> API Connected
+                </div>
+            </header>
+
+            <div class="view-container active-view" id="users-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>Registered Users</h2>
+                        <button class="btn-primary" onclick="loadUsers()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Joined At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="skills-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>Skills Dictionary</h2>
+                        <button class="btn-primary" onclick="loadSkills()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="skills-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Keyword</th>
+                                    <th>Category</th>
+                                    <th>Aliases</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="logs-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>Analysis Logs</h2>
+                        <button class="btn-primary" onclick="loadLogs()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Compatibility Score</th>
+                                    <th>Processing Time</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
