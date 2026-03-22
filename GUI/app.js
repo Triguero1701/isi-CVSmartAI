@@ -139,3 +139,151 @@ async function loadLogs() {
 document.addEventListener('DOMContentLoaded', () => {
     loadUsers(); // load the default active view
 });
+
+// ----------------- ANALYZE CV LOGIC -----------------
+
+const dropzone = document.getElementById('cv-dropzone');
+const fileInput = document.getElementById('cv-file');
+const fileNameDisplay = document.getElementById('file-name-display');
+const analyzeForm = document.getElementById('analyze-form');
+const analyzeSubmitBtn = document.getElementById('analyze-submit-btn');
+
+// Drag and drop events
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, () => dropzone.classList.add('dropzone-active'), false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, () => dropzone.classList.remove('dropzone-active'), false);
+});
+
+dropzone.addEventListener('drop', (e) => {
+    let dt = e.dataTransfer;
+    let files = dt.files;
+    if (files.length) {
+        fileInput.files = files;
+        updateFileName(files[0].name);
+    }
+});
+
+// Click to upload
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', function() {
+    if (this.files && this.files.length > 0) {
+        updateFileName(this.files[0].name);
+    }
+});
+
+function updateFileName(name) {
+    fileNameDisplay.textContent = "Selected: " + name;
+    dropzone.classList.remove('dropzone-error');
+}
+
+// Form Submit
+analyzeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        dropzone.classList.add('dropzone-error');
+        return;
+    }
+
+    const jobOfferText = document.getElementById('job-offer-text').value;
+    const userId = document.getElementById('analyze-user-id').value;
+    const file = fileInput.files[0];
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('cv_file', file);
+    formData.append('job_offer_text', jobOfferText);
+    if (userId) formData.append('user_id', userId);
+
+    // Swap UI to loading state
+    const originalBtnText = analyzeSubmitBtn.innerHTML;
+    analyzeSubmitBtn.innerHTML = '<span class="dot" style="display:inline-block; margin-right:8px; background-color:#fff; box-shadow:none;"></span> Analyzing (Google AI)...';
+    analyzeSubmitBtn.disabled = true;
+    
+    // Hide results if showing
+    document.getElementById('analyze-results-panel').style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_URL}/analyze`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            renderAnalysisResults(data);
+        } else {
+            alert('Error analyzing CV: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error in analyze API:', error);
+        alert('Connection error resolving API.');
+    } finally {
+        analyzeSubmitBtn.innerHTML = originalBtnText;
+        analyzeSubmitBtn.disabled = false;
+    }
+});
+
+function renderAnalysisResults(data) {
+    // Show panel
+    const panel = document.getElementById('analyze-results-panel');
+    panel.style.display = 'flex';
+    
+    // 1. Score
+    const score = data.compatibility_score;
+    const scoreNum = document.getElementById('result-score-number');
+    const scoreGauge = document.getElementById('result-score-gauge');
+    
+    let scoreColor = '#3fb950'; // green
+    if (score < 50) scoreColor = '#f85149'; // red
+    else if (score < 75) scoreColor = '#d29922'; // yellow
+    
+    scoreNum.textContent = `${score}%`;
+    scoreNum.style.color = scoreColor;
+    scoreGauge.style.background = `conic-gradient(${scoreColor} ${score}%, rgba(255,255,255,0.1) 0%)`;
+
+    // 2. Extracted Text Preview
+    document.getElementById('result-text-preview').textContent = data.extracted_text_preview || "No text extracted.";
+
+    // 3. Matched Skills
+    const matchedContainer = document.getElementById('result-matched-skills');
+    matchedContainer.innerHTML = '';
+    (data.analysis?.matched_skills || []).forEach(skill => {
+        const badge = document.createElement('span');
+        badge.textContent = skill;
+        badge.style.cssText = 'background: rgba(63, 185, 80, 0.15); color: #3fb950; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(63, 185, 80, 0.2);';
+        matchedContainer.appendChild(badge);
+    });
+
+    // 4. Missing Keywords
+    const missingContainer = document.getElementById('result-missing-keywords');
+    missingContainer.innerHTML = '';
+    (data.analysis?.missing_keywords || []).forEach(skill => {
+        const badge = document.createElement('span');
+        badge.textContent = skill;
+        badge.style.cssText = 'background: rgba(248, 81, 73, 0.15); color: #f85149; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(248, 81, 73, 0.2);';
+        missingContainer.appendChild(badge);
+    });
+
+    // 5. Improvements
+    const listContainer = document.getElementById('result-improvements');
+    listContainer.innerHTML = '';
+    (data.analysis?.priority_improvements || []).forEach(imp => {
+        const li = document.createElement('li');
+        li.textContent = imp;
+        listContainer.appendChild(li);
+    });
+    
+    // Smooth scroll down to results
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
