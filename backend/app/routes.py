@@ -1,9 +1,74 @@
 from flask import Blueprint, request, jsonify
+import time
 from . import get_db
 
 api_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
+# ----------------- ANALYZE -----------------
+@api_bp.route('/analyze', methods=['POST'])
+def analyze_cv():
+    start_time = time.time()
+    
+    cv_file = request.files.get('cv_file')
+    job_offer_text = request.form.get('job_offer_text')
+    user_id = request.form.get('user_id')
+
+    if not cv_file or not job_offer_text:
+        return jsonify({"status": "error", "error": "cv_file and job_offer_text are required."}), 400
+
+    # Mock timeout reflecting "Document AI" call
+    time.sleep(0.5)
+    processing_time_ms = int((time.time() - start_time) * 1000)
+
+    # Guardamos historial si viene user_id válido
+    if user_id and str(user_id).isdigit():
+        try:
+            db = get_db()
+            db.execute(
+                "INSERT INTO analysis_logs (user_id, compatibility_score, processing_time_ms) VALUES (?, ?, ?)",
+                (int(user_id), 75, processing_time_ms)
+            )
+            db.commit()
+        except:
+            pass # Falla de llave foránea ignorada en el mock
+
+    return jsonify({
+      "status": "success",
+      "compatibility_score": 75,
+      "analysis": {
+        "matched_skills": ["React", "JavaScript", "Trabajo en equipo"],
+        "missing_keywords": ["Python", "Flask", "MySQL"],
+        "priority_improvements": [
+          "Añade referencias a proyectos desarrollados con Python y Flask.",
+          "Menciona conocimientos en bases de datos relacionales como MySQL."
+        ]
+      },
+      "processing_time_ms": processing_time_ms
+    })
+
 # ----------------- USERS -----------------
+@api_bp.route('/users/register', methods=['POST'])
+def register_user():
+    data = request.json
+    db = get_db()
+    
+    if not data or 'name' not in data or 'email' not in data or 'password' not in data:
+        return jsonify({"status": "error", "message": "Faltan campos (name, email, password)."}), 400
+        
+    try:
+        cursor = db.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (data['name'], data['email'], data['password'])
+        )
+        db.commit()
+        return jsonify({
+          "status": "success",
+          "user_id": cursor.lastrowid,
+          "message": "Usuario registrado correctamente."
+        }), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
 @api_bp.route('/users', methods=['GET'])
 def get_users():
     db = get_db()
