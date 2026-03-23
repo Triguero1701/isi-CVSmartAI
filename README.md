@@ -118,11 +118,37 @@ Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un er
 1. **Evaluación de Código y Lógica (Sin Facturación Google):**
    Puedes ejecutar toda la suite de tests (`pytest backend/tests/ -v`). En el código he implementado un sistema de *Mocks* (`unittest.mock.patch`) que simula la respuesta de los servidores de Google Document AI. **Los tests pasarán en verde con un 100% de éxito demostrando que la API funciona** sin necesidad de crear proyectos ni añadir tarjetas de crédito en Google Cloud.
 
-2. **Evaluación Funcional Completa (Conexión Real):**
-   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real:
-   - Pide al alumno el archivo `service_account.json` y el contenido del archivo `.env` por privado.
-   - Coloca el `.json` en `backend/credentials/` y el `.env` en la carpeta `backend/` (tienes un `backend/.env.example` como guía de las variables requeridas).
-   - Arranca el servidor Flask normal y la API procesará tu petición usando Document AI.
+2. **Evaluación Funcional Completa (Conexión Real en Google Cloud):**
+   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real, debes configurar tus propias credenciales en Google Cloud. Sigue estos pasos:
+
+   **A. Configurar el Procesador en Document AI (Variables para el `.env`)**
+   1. Ve a la [Consola de Google Cloud](https://console.cloud.google.com/) e inicia sesión.
+   2. Crea un **Nuevo Proyecto** (o selecciona uno existente).
+   3. **Habilitar la Facturación (Billing):** Para usar Document AI, Google requiere asociar una **tarjeta de crédito** o débito al proyecto. *(No te preocupes, hay una capa gratuita que cubre de sobra las pruebas de esta evaluación sin generar ningún coste real)*.
+      - Abre el menú lateral izquierdo (icono de hamburguesa) y pulsa en **Facturación** (Billing).
+      - Selecciona **Vincular una cuenta de facturación** o haz clic en **Gestionar cuentas de facturación** > **Agregar cuenta de facturación**.
+      - Sigue los pasos en pantalla para introducir tus datos de pago y vincular la cuenta al proyecto.
+   4. En el buscador superior, busca **"Cloud Document AI API"** y haz clic en **Habilitar** (Enable).
+   5. En el menú lateral, ve a **Document AI > Procesadores** (Processors).
+   6. Haz clic en **Crear Procesador** (Create Processor) y selecciona uno de extracción de texto como **"Document OCR"**.
+   7. Asígnale un nombre, selecciona una región (ej. `eu` o `us`) y créalo.
+   8. Una vez creado, entra en los detalles del procesador. Aquí encontrarás la información necesaria para el entorno:
+      - **ID del Proyecto** (`PROJECT_ID`)
+      - **Ubicación** (`LOCATION`, normalmente `eu` o `us`)
+      - **ID del Procesador** (`PROCESSOR_ID`)
+   9. En la carpeta `backend/`, copia el archivo `.env.example` y renómbralo a `.env`. Rellena las variables con los datos obtenidos en el paso anterior.
+
+   **B. Obtener las credenciales de la Cuenta de Servicio (`service_account.json`)**
+   1. En la consola de Google Cloud, busca **"Cuentas de servicio"** (Service Accounts) dentro de *IAM y administración*.
+   2. Haz clic en **Crear cuenta de servicio** (Create service account). Dale un nombre y pulsa *Crear y continuar*.
+   3. En la sección de otorgar acceso, asígnale el rol de **Usuario de Document AI** (Document AI User) para que tenga permisos de invocar el procesador. Pulsa *Continuar* y luego *Listo*.
+   4. En la lista de cuentas de servicio, haz clic sobre el email de la cuenta que acabas de crear.
+   5. Ve a la pestaña **Claves** (Keys).
+   6. Haz clic en **Agregar clave** > **Crear clave nueva** y selecciona el formato **JSON**.
+   7. Se descargará un archivo a tu ordenador. Renombra este archivo descargado a `service_account.json`.
+   8. Coloca el archivo `service_account.json` dentro de la carpeta `backend/credentials/` del proyecto.
+
+   Una vez completados estos pasos (teniendo el `.env` y el `service_account.json` en sus respectivas rutas y con los datos correctos), puedes arrancar el servidor Flask (`python run.py`) y la API podrá procesar archivos PDF reales a través de tu proyecto de Google Cloud.
 
 ---
 
