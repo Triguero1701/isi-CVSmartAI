@@ -130,12 +130,11 @@ Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un er
       - Sigue los pasos en pantalla para introducir tus datos de pago y vincular la cuenta al proyecto.
    4. En el buscador superior, busca **"Cloud Document AI API"** y haz clic en **Habilitar** (Enable).
    5. En el menú lateral, ve a **Document AI > Procesadores** (Processors).
-   6. Haz clic en **Crear Procesador** (Create Processor) y selecciona uno de extracción de texto como **"Document OCR"**.
-   7. Asígnale un nombre, selecciona una región (ej. `eu` o `us`) y créalo.
+   6. Haz clic en  galeria del processador y selecciona  **"Document OCR"** .
+   7. Asígnale un nombre, selecciona una región (ej. `eu` ) y créalo.
    8. Una vez creado, entra en los detalles del procesador. Aquí encontrarás la información necesaria para el entorno:
-      - **ID del Proyecto** (`PROJECT_ID`)
-      - **Ubicación** (`LOCATION`, normalmente `eu` o `us`)
-      - **ID del Procesador** (`PROCESSOR_ID`)
+      - **ID del Proyecto** (`PROJECT_ID`) este id lo encontraras dandole en el icono de arriba a la izquierda de google coud 
+      - **ID del Procesador** (`PROCESSOR_ID`) y - **Ubicación** (`LOCATION`, normalmente `eu` o `us`) para encontrar ambos en el buscador escribe document ai y dentro en la barra de la izqu selecciona mis procesadores elige la region que escogiste antes (UE) y aparecera el proceso que creaste antes dandole click aparecera en la informacion basica un campo llamado id que sera el id de procesador y la region (eu)
    9. En la carpeta `backend/`, copia el archivo `.env.example` y renómbralo a `.env`. Rellena las variables con los datos obtenidos en el paso anterior.
 
    **B. Obtener las credenciales de la Cuenta de Servicio (`service_account.json`)**
