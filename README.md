@@ -2,6 +2,13 @@
 
 ¡Bienvenido al repositorio de **CVSmartAI**! Este proyecto es una plataforma SaaS diseñada para optimizar los CVs de perfiles junior mediante inteligencia artificial, ayudando a superar los filtros automatizados ATS.
 
+## ✨ Características Principales
+- **Análisis de Compatibilidad:** Evaluación semántica entre tu CV y ofertas de trabajo mediante Google Gemini.
+- **Scraping Automático:** Extracción de ofertas laborales desde URLs (LinkedIn, InfoJobs) automáticamente.
+- **Feedback en Tiempo Real:** Carga progresiva de los análisis usando SSE (Server-Sent Events).
+- **Seguridad (JWT):** Acceso protegido mediante autenticación por tokens.
+- **Dashboard Analítico y Reportes:** Gráficas de evolución, diffing visual de skills entre versiones de CVs, y exportación a PDF.
+
 A continuación, encontrarás la hoja de ruta paso a paso para tener todo el entorno funcionando correctamente en tu máquina local.
 
 ## 📋 Requisitos Previos
@@ -59,8 +66,9 @@ docker-compose up -d
 ```
 
 3. **Configurar Variables de Entorno:**
-   Copia el archivo `backend/.env.example` y renómbralo a `.env`. Asegúrate de que la variable `DATABASE_URL` apunte a la instancia local de Docker:
-   `DATABASE_URL=postgresql://postgres:postgrespassword@localhost:5432/cvsmartai`
+   Copia el archivo `backend/.env.example` y renómbralo a `.env`. Asegúrate de rellenar:
+   - `DATABASE_URL`: `postgresql://postgres:postgrespassword@localhost:5432/cvsmartai`
+   - `JWT_SECRET_KEY`: Una clave secreta para la generación de tokens (por ejemplo: `mi_clave_super_secreta_123`).
 
 4. **Poblar la base de datos (Estructura y Datos Ficticios):**
    Asegúrate de estar en la **raíz del proyecto** con tu entorno virtual activado, y ejecuta el script de instalación para generar la estructura y los datos de prueba:
@@ -91,15 +99,22 @@ El servidor arrancará e indicará que está escuchando en el puerto 5000: `http
 
 ---
 
-### 5. Abrir la Interfaz de Usuario (Frontend GUI)
+### 5. Abrir la Interfaz de Usuario (Frontend React)
 
-El frontend de la aplicación es Vanilla JS/HTML/CSS muy ligero y no requiere NodeJS ni empaquetadores complejos para funcionar.
+El frontend de la aplicación es una SPA moderna construida con React, Vite y módulos CSS que consumen nuestra API protegida por JWT.
 
-1. Navega a la carpeta `/GUI/`.
-2. Simplemente **haz doble clic** en el archivo `index.html` para abrirlo en tu navegador preferido (Chrome, Firefox, Edge, etc.).
-3. Alternativamente, si usas VSCode, puedes usar la extensión **Live Server** para abrir `index.html`.
+1. Abre una nueva terminal y navega a la carpeta `/frontend/`.
+2. Instala las dependencias del cliente (necesitarás tener Node.js instalado):
+   ```bash
+   npm install
+   ```
+3. Levanta el servidor de desarrollo del frontend:
+   ```bash
+   npm run dev
+   ```
+4. Abre tu navegador en `http://localhost:5173/`. La interfaz aplicará su diseño Glassmorphism y se conectará automáticamente al backend `http://localhost:5000/api/v1/...`.
 
-La interfaz debería cargar por completo, aplicando los estilos (`style.css`) y conectándose automáticamente al backend a través de `app.js` (el cual hace peticiones directamente a `http://localhost:5000/api/v1/...`).
+*(Opcionalmente, existe un Dashboard Legacy Vanilla JS en `/GUI/` que puedes abrir simplemente haciendo doble clic en `index.html`, pero la funcionalidad avanzada de exportación, diffing y SSE reside en la versión de React).*
 
 ---
 
