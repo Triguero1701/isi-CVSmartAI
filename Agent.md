@@ -1,27 +1,53 @@
-# Agent.md: Contexto y Requisitos del Proyecto CVSmartAI
+# Agent.md: CVSmartAI Context & Project State
 
-## 1. Visión General del Proyecto
-* **Nombre:** CVSmartAI.
-* **Objetivo Principal:** Mejorar la empleabilidad de estudiantes y recién graduados mediante la optimización inteligente del CV.
-* **Problema a resolver:** Entre el 70% y el 80% de los currículums no son leídos por humanos, siendo descartados por sistemas automáticos de filtrado (ATS), lo que genera frustración en perfiles junior.
-* **Propuesta de Valor:** Optimización de CV impulsada por IA para superar filtros ATS, detectando keywords faltantes y calculando la compatibilidad CV-Oferta.
+## 1. Project Overview
+**CVSmartAI** is a SaaS platform designed to optimize the CVs of students and junior profiles using AI, helping them bypass automated ATS filters by detecting missing keywords and calculating CV-to-Offer compatibility. The system focuses on tracking user evolution across multiple CV iterations to ensure progressive improvement.
 
-## 2. Requisitos Funcionales
-* **Gestión de Entradas:** El sistema permitirá subir CVs en formato PDF o texto y proporcionará un área de texto para introducir ofertas de empleo.
-* **Procesamiento de Texto:** El sistema extraerá el texto de los PDFs subidos apoyándose en servicios externos.
-* **Análisis y Matching:** El sistema comparará el CV con la oferta utilizando procesamiento de lenguaje natural (NLP) básico para identificar solapamiento de tecnologías y *soft skills*.
-* **Generación de Reportes:** El sistema devolverá un porcentaje numérico de compatibilidad y listará sugerencias accionables (keywords faltantes).
-* **Gestión de Usuarios:** El sistema permitirá el registro y autenticación de usuarios para mantener un historial de uso.
+## 2. Current Architecture & Folder Structure
+The project is built on a modular, fully operational architecture, recently migrated to a scalable stack:
 
-## 3. Requisitos No Funcionales y Stack Tecnológico
-* **Frontend (Interfaz de Usuario):** Desarrollado en **React** con HTML, CSS y JavaScript. Deberá contar con un diseño *responsive*.
-* **Backend (Lógica y Servicios):** Desarrollado en **Python**, exponiendo los servicios mediante una API REST utilizando **Flask**. Alojará el motor interno de *matching* semántico.
-* **Persistencia de Datos:** Base de datos relacional **MySQL** para el almacenamiento de perfiles de usuario, el diccionario de competencias y las métricas del sistema.
-* **Integraciones Externas:** Consumo de la API de **Google Document AI** para realizar el parseo y extracción de texto de los documentos PDF de manera precisa.
+* **`/backend/`**: Python Flask REST API.
+  * **Core Files**: `run.py` (entry point on `localhost:5000`), `requirements.txt` (Flask, psycopg2-binary, google-cloud-documentai, etc.), `.env` (Google Cloud credentials & `DATABASE_URL`).
+  * **Application Factory**: `app/__init__.py` configures CORS, custom JSON datetime formatting, and PostgreSQL connections.
+  * **Endpoints (`app/routes.py`)**: 
+    - Full CRUD support for `/api/v1/users`, `/api/v1/skills`, and `/api/v1/logs`.
+    - Custom Endpoint: `/api/v1/analyze` (POST) Pre-registers CV versions, utilizes Google Document AI for extraction, and evaluates CVs against job offers using Google Gemini.
+    - Custom Endpoint: `/api/v1/users/<id>/history` (GET) Returns a chronological history of a user's CV versions and compatibility scores.
+    - Custom Endpoint: `/api/v1/users/register` (POST) handles user signup securely.
+  * **Integrations (`app/parser.py`, `app/llm_engine.py`)**: Connects to Google Document AI and Google Gemini.
+  * **Testing (`tests/`)**: Robust validation suite (`test_api.py`, `test_db.py`, `conftest.py`). Uses an isolated, dynamically created PostgreSQL test database (`cvsmartai_test`) per session. 100% passing rates.
 
-## 4. Métricas de Éxito (KPIs y OKRs)
-* **KPIs:** Número de CVs analizados, porcentaje medio de compatibilidad, optimizaciones por oferta y usuarios recurrentes.
-* **Key Results:**
-    * Conseguir 50 usuarios registrados en la fase piloto.
-    * Lograr que $\ge70\%$ de usuarios mejore su porcentaje de compatibilidad tras aplicar sugerencias.
-    * Incrementar en un 30% los CVs con compatibilidad superior al 75%.
+* **`/database/`**: (Deprecated functionality) Previously used for SQLite, now fully replaced by Dockerized PostgreSQL.
+
+* **`/scripts/`**: Utility & Maintenance.
+  * Contains `setup_db.py`, which initializes the PostgreSQL database tables and populates realistic, evolutionary mock data (users, job offers, version progressions, analysis logs).
+
+* **`/frontend/`**: Modern React SPA (Single Page Application).
+  * Built with Vite, React Router, Recharts, and Lucide React.
+  * Utilizes Glassmorphism and CSS Modules (`Dashboard.module.css`, `Login.module.css`, etc.) for a premium UI.
+  * Includes charts mapping the progressive `compatibility_score` evolution of candidates.
+
+* **`/GUI/`**: Legacy Plain HTML/JS Vanilla Frontend Dashboard.
+  * Maintained as a functional lightweight fallback if Node.js is not present in the host environment.
+  * Recently updated to include a "User Evolution" tab connecting to the `/history` endpoint.
+
+* **Root Files**:
+  * `docker-compose.yml`: Spins up a `postgres:15-alpine` container (`cvsmartai_db`) automatically mapping port 5432.
+  * `README.md`: Central documentation for environment setup, Docker configuration, and evaluation protocols.
+
+## 3. Database Schema (PostgreSQL)
+* **`users`**: `id` SERIAL (PK), `name` VARCHAR, `email` VARCHAR (UNIQUE), `password_hash` VARCHAR, `created_at` TIMESTAMP
+* **`skills_dictionary`**: `id` SERIAL (PK), `keyword` VARCHAR, `category` VARCHAR, `aliases` JSONB
+* **`job_offers`**: `id` SERIAL (PK), `title` VARCHAR, `description` TEXT, `keywords` JSONB, `created_at` TIMESTAMP
+* **`cv_versions`**: `id` SERIAL (PK), `user_id` INTEGER (FK), `job_offer_id` INTEGER (FK), `extracted_text` TEXT, `version_number` INTEGER, `compatibility_score` INTEGER, `created_at` TIMESTAMP
+* **`analysis_logs`**: `id` SERIAL (PK), `user_id` INTEGER (FK), `cv_version_id` INTEGER (FK), `compatibility_score` INTEGER, `processing_time_ms` INTEGER, `created_at` TIMESTAMP
+* **`feedback_logs`**: `id` SERIAL (PK), `cv_version_id` INTEGER (FK), `suggested_corrections` JSONB, `created_at` TIMESTAMP
+
+## 4. Key Metrics & OKRs
+* Ensure $\ge70\%$ of users improve their compatibility score after applying platform feedback (tracked via `cv_versions.version_number` vs `compatibility_score`).
+* Increase by 30% the overall sum of CVs that reach a compatibility matching score higher than 75%.
+
+## 5. Guidelines for AI Agents Developer Context
+1. **DB Access**: The system uses PostgreSQL via `psycopg2`. Always use explicit cursors (`cursor.execute`) and PostgreSQL's `%s` variable binding parameter format instead of SQLite's `?`.
+2. **Testing**: Any architectural additions require Pytest fixtures in `test_api.py`. The suite builds and tears down `cvsmartai_test` dynamically.
+3. **UI Updates**: All active UI feature development should prioritize the React SPA in `/frontend/`.
