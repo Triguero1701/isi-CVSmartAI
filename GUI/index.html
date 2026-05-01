@@ -27,6 +27,10 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     Analysis Logs
                 </button>
+                <button class="nav-item" data-target="history-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    User Evolution
+                </button>
                 <button class="nav-item" data-target="analyze-view">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     Analyze CV
@@ -105,6 +109,34 @@
                                     <th>User ID</th>
                                     <th>Compatibility Score</th>
                                     <th>Processing Time</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="history-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>User Evolution (CV Versions)</h2>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="number" id="history-user-id" value="1" min="1" style="width: 80px; border: 1px solid var(--border); background: rgba(13, 17, 23, 0.65); color: #fff; border-radius: 6px; padding: 0.3rem 0.5rem; outline: none;">
+                            <button class="btn-primary" onclick="loadHistory()">View User</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Version ID</th>
+                                    <th>Version Number</th>
+                                    <th>Job Offer</th>
+                                    <th>Compatibility Score</th>
                                     <th>Timestamp</th>
                                 </tr>
                             </thead>

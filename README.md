@@ -7,6 +7,7 @@ A continuación, encontrarás la hoja de ruta paso a paso para tener todo el ent
 ## 📋 Requisitos Previos
 
 Asegúrate de tener instalados los siguientes programas en tu sistema:
+
 - **Python 3.8+** (Recomendado 3.10 o superior)
 - **Git**
 
@@ -46,17 +47,25 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Configurar la Base de Datos y Datos Fake
+### 3. Configurar la Base de Datos (PostgreSQL via Docker) y Datos Fake
 
-El proyecto incluye un script preparado para generar la estructura de la base de datos (SQLite3) y poblarla con datos de prueba (usuarios, logs de análisis y diccionario de habilidades).
+El proyecto utiliza PostgreSQL para el almacenamiento de datos. Para facilitar el entorno, hemos incluido un archivo `docker-compose.yml` que levanta la base de datos automáticamente.
 
-Asegúrate de estar en la **raíz del proyecto** (y con el entorno virtual activado si corresponde) y ejecuta:
+1. **Asegúrate de tener Docker instalado y en ejecución.**
+2. En la **raíz del proyecto**, ejecuta el siguiente comando para levantar el contenedor de la base de datos en segundo plano:
 
 ```bash
-# Si sigues en la carpeta backend, sube un nivel:
-cd ..
+docker-compose up -d
+```
 
-# Ejecuta el script de instalación de la BD
+3. **Configurar Variables de Entorno:**
+   Copia el archivo `backend/.env.example` y renómbralo a `.env`. Asegúrate de que la variable `DATABASE_URL` apunte a la instancia local de Docker:
+   `DATABASE_URL=postgresql://postgres:postgrespassword@localhost:5432/cvsmartai`
+
+4. **Poblar la base de datos (Estructura y Datos Ficticios):**
+   Asegúrate de estar en la **raíz del proyecto** con tu entorno virtual activado, y ejecuta el script de instalación para generar la estructura y los datos de prueba:
+
+```bash
 python scripts/setup_db.py
 ```
 
@@ -77,7 +86,7 @@ cd backend
 python run.py
 ```
 
-El servidor arrancará e indicará que está escuchando en el puerto 5000: `http://127.0.0.1:5000`. 
+El servidor arrancará e indicará que está escuchando en el puerto 5000: `http://127.0.0.1:5000`.
 **No cierres esta terminal**, mantenla abierta para que el backend siga activo.
 
 ---
@@ -102,24 +111,35 @@ El proyecto incluye una robusta suite de pruebas unitarias (`pytest`). Si quiere
 2. Navega a la carpeta `/backend/`.
 3. Activa tu entorno virtual (`venv\Scripts\activate`).
 4. Ejecuta:
+
    ```bash
    pytest tests/
    ```
+
 Verás que todos los tests pasarán al 100% de manera exitosa cubriendo rutas, registro de usuarios, base de datos en memoria (aislada), etc.
 
 ---
 
 ## 👨‍🏫 Instrucciones para la Evaluación (Profesor)
 
-Por motivos de seguridad, **las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público**. 
+Por motivos de seguridad, **las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público**.
 
 Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un error si intentas analizar un PDF real. Sin embargo, el proyecto está preparado para su evaluación de dos formas:
 
-1. **Evaluación de Código y Lógica (Sin Facturación Google):**
-   Puedes ejecutar toda la suite de tests (`pytest backend/tests/ -v`). En el código he implementado un sistema de *Mocks* (`unittest.mock.patch`) que simula la respuesta de los servidores de Google Document AI. **Los tests pasarán en verde con un 100% de éxito demostrando que la API funciona** sin necesidad de crear proyectos ni añadir tarjetas de crédito en Google Cloud.
+1. **Evaluación de Código y Lógica (Sin Facturación Google ni APIs):**
+   Puedes ejecutar toda la suite de tests (`pytest backend/tests/ -v`). En el código he implementado un sistema de *Mocks* (`unittest.mock.patch` en `conftest.py`) que simula la respuesta de los servidores de Google Document AI y del LLM Gemini. **Los tests pasarán en verde con un 100% de éxito demostrando que la API funciona** sin necesidad de crear proyectos ni añadir tarjetas de crédito.
 
-2. **Evaluación Funcional Completa (Conexión Real en Google Cloud):**
-   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real, debes configurar tus propias credenciales en Google Cloud. Sigue estos pasos:
+2. **Evaluación Funcional Completa (Conexión Real con Google Cloud y Gemini):**
+   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real así como el análisis semántico de Gemini LLM:
+
+   - **Opción Rápida (Recomendada para el profesor):** Pide al alumno los archivos de configuración ya preparados (`service_account.json` y un `.env` completo que incluye la `GEMINI_API_KEY`).
+     1. Coloca el `service_account.json` en `backend/credentials/`.
+     2. Coloca el archivo `.env` en la carpeta `backend/` (tienes un `backend/.env.example` como guía de la estructura).
+     3. Arranca el servidor Flask y la API procesará tu petición en directo.
+
+   - **Opción Manual (Si deseas usar tus propias credenciales):**
+     1. **Para Gemini LLM**: Obtén tu propia `GEMINI_API_KEY` en Google AI Studio y añádela a tu `.env`.
+     2. **Para Document AI**: Configura el procesador OCR y la cuenta de servicio en Google Cloud siguiendo estos pasos detallados:
 
    **A. Configurar el Procesador en Document AI (Variables para el `.env`)**
    1. Ve a la [Consola de Google Cloud](https://console.cloud.google.com/) e inicia sesión.
@@ -133,9 +153,9 @@ Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un er
    6. Haz clic en  galeria del processador y selecciona  **"Document OCR"** .
    7. Asígnale un nombre, selecciona una región (ej. `eu` ) y créalo.
    8. Una vez creado, entra en los detalles del procesador. Aquí encontrarás la información necesaria para el entorno:
-      - **ID del Proyecto** (`PROJECT_ID`) este id lo encontraras dandole en el icono de arriba a la izquierda de google coud 
+      - **ID del Proyecto** (`PROJECT_ID`) este id lo encontraras dandole en el icono de arriba a la izquierda de google coud
       - **ID del Procesador** (`PROCESSOR_ID`) y - **Ubicación** (`LOCATION`, normalmente `eu` o `us`) para encontrar ambos en el buscador escribe document ai y dentro en la barra de la izqu selecciona mis procesadores elige la region que escogiste antes (UE) y aparecera el proceso que creaste antes dandole click aparecera en la informacion basica un campo llamado id que sera el id de procesador y la region (eu)
-   9. En la carpeta `backend/`, copia el archivo `.env.example` y renómbralo a `.env`. Rellena las variables con los datos obtenidos en el paso anterior.
+   9. En la carpeta `backend/`, copia el archivo `.env.example` y renómbralo a `.env`. Rellena las variables con los datos obtenidos en el paso anterior y no olvides tu `GEMINI_API_KEY`.
 
    **B. Obtener las credenciales de la Cuenta de Servicio (`service_account.json`)**
    1. En la consola de Google Cloud, busca **"Cuentas de servicio"** (Service Accounts) dentro de *IAM y administración*.

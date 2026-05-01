@@ -18,6 +18,7 @@ document.querySelectorAll('.nav-item').forEach(button => {
         if (targetId === 'users-view') loadUsers();
         if (targetId === 'skills-view') loadSkills();
         if (targetId === 'logs-view') loadLogs();
+        if (targetId === 'history-view') loadHistory();
     });
 });
 
@@ -132,6 +133,55 @@ async function loadLogs() {
     } catch (error) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #f85149;">Error connecting to API. Is Flask running?</td></tr>`;
         console.error('Error fetching logs:', error);
+    }
+}
+
+// Fetch and load History
+async function loadHistory() {
+    const tbody = document.querySelector('#history-table tbody');
+    const userIdInput = document.getElementById('history-user-id');
+    let userId = userIdInput.value;
+    if (!userId) userId = 1;
+
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+    
+    try {
+        const response = await fetch(`${API_URL}/users/${userId}/history`);
+        const data = await response.json();
+        
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No history found for this user.</td></tr>';
+            return;
+        }
+
+        data.forEach(version => {
+            const tr = document.createElement('tr');
+            
+            // Score styling mapping
+            let scoreColor = '#3fb950'; // green
+            if (version.compatibility_score < 50) scoreColor = '#f85149'; // red
+            else if (version.compatibility_score < 75) scoreColor = '#d29922'; // yellow
+
+            tr.innerHTML = `
+                <td>#${version.version_id}</td>
+                <td style="font-weight:bold; color: #fff;">v${version.version_number}</td>
+                <td style="color: var(--text-muted);">${version.job_offer_title || 'Unknown Job'}</td>
+                <td>
+                    <div style="display:flex; align-items:center; gap: 8px;">
+                        <span style="color: ${scoreColor}; font-weight:600;">${version.compatibility_score}%</span>
+                        <div style="width: 100px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow:hidden;">
+                            <div style="width: ${version.compatibility_score}%; height: 100%; background: ${scoreColor};"></div>
+                        </div>
+                    </div>
+                </td>
+                <td><span style="color: var(--text-muted); font-size: 0.85rem">${formatDate(version.created_at)}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #f85149;">Error connecting to API. Is Flask running?</td></tr>`;
+        console.error('Error fetching history:', error);
     }
 }
 

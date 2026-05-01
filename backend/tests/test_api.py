@@ -375,3 +375,40 @@ class TestAnalyze:
         res = client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
         assert res.status_code == 200
         assert res.json['status'] == 'success'
+
+# =============================================================================
+# HISTORY - /api/v1/users/<id>/history
+# =============================================================================
+
+class TestHistory:
+    """Tests para el endpoint de historial evolutivo"""
+
+    def test_get_history_empty(self, client):
+        """Historial vacío para un usuario nuevo"""
+        res = client.get('/api/v1/users/999/history')
+        assert res.status_code == 200
+        assert res.json == []
+
+    def test_get_history_after_analysis(self, client):
+        """Historial refleja el análisis realizado"""
+        # 1. Crear usuario
+        create = client.post('/api/v1/users/register',
+                             data=json.dumps({"name": "History User", "email": "hist@test.com", "password": "p"}),
+                             content_type='application/json')
+        user_id = create.json['user_id']
+
+        # 2. Hacer un análisis
+        data = {
+            'job_offer_text': 'Desarrollador React',
+            'user_id': str(user_id)
+        }
+        data['cv_file'] = (BytesIO(b"React Developer"), 'cv.pdf')
+        client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
+
+        # 3. Consultar historial
+        res = client.get(f'/api/v1/users/{user_id}/history')
+        assert res.status_code == 200
+        assert len(res.json) > 0
+        assert 'compatibility_score' in res.json[0]
+        assert 'version_number' in res.json[0]
+        assert 'job_offer_title' in res.json[0]

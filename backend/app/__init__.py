@@ -1,21 +1,32 @@
-import sqlite3
+import psycopg2
 import os
 from flask import Flask, g
 from flask_cors import CORS
+from dotenv import load_dotenv
 
-# Resolve path relative to this file: backend/app/__init__.py -> project root -> database/
-_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DATABASE = os.path.join(_PROJECT_ROOT, 'database', 'cvsmartai.db')
+load_dotenv()
+
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/cvsmartai')
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row  # Makes queries return dictionaries rather than tuples
+        db_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/cvsmartai')
+        db = g._database = psycopg2.connect(db_url)
     return db
+
+from flask.json.provider import DefaultJSONProvider
+from datetime import datetime
+
+class CustomJSONProvider(DefaultJSONProvider):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 def create_app():
     app = Flask(__name__)
+    app.json = CustomJSONProvider(app)
     CORS(app)
 
     @app.teardown_appcontext

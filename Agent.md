@@ -1,43 +1,53 @@
 # Agent.md: CVSmartAI Context & Project State
 
 ## 1. Project Overview
-**CVSmartAI** is a SaaS platform designed to optimize the CVs of students and junior profiles using AI, helping them bypass automated ATS filters by detecting missing keywords and calculating CV-to-Offer compatibility.
+**CVSmartAI** is a SaaS platform designed to optimize the CVs of students and junior profiles using AI, helping them bypass automated ATS filters by detecting missing keywords and calculating CV-to-Offer compatibility. The system focuses on tracking user evolution across multiple CV iterations to ensure progressive improvement.
 
 ## 2. Current Architecture & Folder Structure
-The project is built on a modular, fully operational architecture:
+The project is built on a modular, fully operational architecture, recently migrated to a scalable stack:
 
 * **`/backend/`**: Python Flask REST API.
-  * **Core Files**: `run.py` (entry point on `localhost:5000`), `requirements.txt` (Flask, Flask-Cors, pytest, pytest-flask).
-  * **Application Factory**: `app/__init__.py` configures CORS and SQLite3 connections.
+  * **Core Files**: `run.py` (entry point on `localhost:5000`), `requirements.txt` (Flask, psycopg2-binary, google-cloud-documentai, etc.), `.env` (Google Cloud credentials & `DATABASE_URL`).
+  * **Application Factory**: `app/__init__.py` configures CORS, custom JSON datetime formatting, and PostgreSQL connections.
   * **Endpoints (`app/routes.py`)**: 
     - Full CRUD support for `/api/v1/users`, `/api/v1/skills`, and `/api/v1/logs`.
-    - Custom Endpoint: `/api/v1/analyze` (POST) simulates Document AI text parsing on PDFs and returns standard JSON compatibility data.
+    - Custom Endpoint: `/api/v1/analyze` (POST) Pre-registers CV versions, utilizes Google Document AI for extraction, and evaluates CVs against job offers using Google Gemini.
+    - Custom Endpoint: `/api/v1/users/<id>/history` (GET) Returns a chronological history of a user's CV versions and compatibility scores.
     - Custom Endpoint: `/api/v1/users/register` (POST) handles user signup securely.
-  * **Testing (`tests/`)**: Contains a comprehensive validation suite (`test_api.py`, `test_db.py`, `conftest.py`) guaranteeing 100% passing rates across all endpoints, error handling (HTTP 400), and database schemas using isolated temporary databases. (Executable via `pytest tests/`).
+  * **Integrations (`app/parser.py`, `app/llm_engine.py`)**: Connects to Google Document AI and Google Gemini.
+  * **Testing (`tests/`)**: Robust validation suite (`test_api.py`, `test_db.py`, `conftest.py`). Uses an isolated, dynamically created PostgreSQL test database (`cvsmartai_test`) per session. 100% passing rates.
 
-* **`/database/`**: Persistence layer.
-  * Contains `cvsmartai.db`, the active SQLite3 database file.
+* **`/database/`**: (Deprecated functionality) Previously used for SQLite, now fully replaced by Dockerized PostgreSQL.
 
 * **`/scripts/`**: Utility & Maintenance.
-  * Contains `setup_db.py`, which initializes the database tables and natively populates mock data (hashed users, skills, analysis logs).
+  * Contains `setup_db.py`, which initializes the PostgreSQL database tables and populates realistic, evolutionary mock data (users, job offers, version progressions, analysis logs).
 
-* **`/GUI/`**: Plain HTML/JS Vanilla Frontend Dashboard.
-  * Features a modern, premium analytical UI/UX utilizing flat design, glowing metrics, and glassmorphism translucent panels (`style.css`).
-  * Semantically structured in `index.html` mapping the design for the Database views.
-  * Presentation logic natively handled by `app.js`, synchronously querying the Flask API.
+* **`/frontend/`**: Modern React SPA (Single Page Application).
+  * Built with Vite, React Router, Recharts, and Lucide React.
+  * Utilizes Glassmorphism and CSS Modules (`Dashboard.module.css`, `Login.module.css`, etc.) for a premium UI.
+  * Includes charts mapping the progressive `compatibility_score` evolution of candidates.
 
-* **`/frontend/`**: Reserved scaffold directory (originally mapped to host an external React SPA setup).
+* **`/GUI/`**: Legacy Plain HTML/JS Vanilla Frontend Dashboard.
+  * Maintained as a functional lightweight fallback if Node.js is not present in the host environment.
+  * Recently updated to include a "User Evolution" tab connecting to the `/history` endpoint.
 
-## 3. Database Schema (cvsmartai.db - SQLite3)
-* **`users`**: `id` INTEGER (PK), `name` VARCHAR, `email` VARCHAR (UNIQUE), `password_hash` VARCHAR, `created_at` TIMESTAMP
-* **`skills_dictionary`**: `id` INTEGER (PK), `keyword` VARCHAR, `category` VARCHAR (hard_skill/soft_skill), `aliases` JSON
-* **`analysis_logs`**: `id` INTEGER (PK), `user_id` INTEGER (FK), `compatibility_score` INTEGER (0-100), `processing_time_ms` INTEGER, `created_at` TIMESTAMP
+* **Root Files**:
+  * `docker-compose.yml`: Spins up a `postgres:15-alpine` container (`cvsmartai_db`) automatically mapping port 5432.
+  * `README.md`: Central documentation for environment setup, Docker configuration, and evaluation protocols.
+
+## 3. Database Schema (PostgreSQL)
+* **`users`**: `id` SERIAL (PK), `name` VARCHAR, `email` VARCHAR (UNIQUE), `password_hash` VARCHAR, `created_at` TIMESTAMP
+* **`skills_dictionary`**: `id` SERIAL (PK), `keyword` VARCHAR, `category` VARCHAR, `aliases` JSONB
+* **`job_offers`**: `id` SERIAL (PK), `title` VARCHAR, `description` TEXT, `keywords` JSONB, `created_at` TIMESTAMP
+* **`cv_versions`**: `id` SERIAL (PK), `user_id` INTEGER (FK), `job_offer_id` INTEGER (FK), `extracted_text` TEXT, `version_number` INTEGER, `compatibility_score` INTEGER, `created_at` TIMESTAMP
+* **`analysis_logs`**: `id` SERIAL (PK), `user_id` INTEGER (FK), `cv_version_id` INTEGER (FK), `compatibility_score` INTEGER, `processing_time_ms` INTEGER, `created_at` TIMESTAMP
+* **`feedback_logs`**: `id` SERIAL (PK), `cv_version_id` INTEGER (FK), `suggested_corrections` JSONB, `created_at` TIMESTAMP
 
 ## 4. Key Metrics & OKRs
-* Ensure $\ge70\%$ of users improve their compatibility score after applying platform feedback.
+* Ensure $\ge70\%$ of users improve their compatibility score after applying platform feedback (tracked via `cv_versions.version_number` vs `compatibility_score`).
 * Increase by 30% the overall sum of CVs that reach a compatibility matching score higher than 75%.
 
 ## 5. Guidelines for AI Agents Developer Context
-1. **DB Access**: Do not circumvent the backend. All data interactions happen via the REST API at `/api/v1/`.
-2. **Testing**: Any architectural additions to the backend require corresponding Pytest fixtures and assertions added to `test_api.py`.
-3. **UI Updates**: Maintain the "Vanilla" DOM implementation inside `/GUI/`. Avoid loading large node dependencies for layout tweaking. For highly complex state management or migrating to an ecosystem, utilize the reserved `/frontend/` root folder.
+1. **DB Access**: The system uses PostgreSQL via `psycopg2`. Always use explicit cursors (`cursor.execute`) and PostgreSQL's `%s` variable binding parameter format instead of SQLite's `?`.
+2. **Testing**: Any architectural additions require Pytest fixtures in `test_api.py`. The suite builds and tears down `cvsmartai_test` dynamically.
+3. **UI Updates**: All active UI feature development should prioritize the React SPA in `/frontend/`.
