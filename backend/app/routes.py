@@ -74,8 +74,8 @@ def analyze_cv():
                     job_offer_id = cursor.fetchone()['id']
                     
                 cursor.execute(
-                    "SELECT COALESCE(MAX(version_number), 0) + 1 AS next_version FROM cv_versions WHERE user_id = %s AND job_offer_id = %s",
-                    (int(user_id), job_offer_id)
+                    "SELECT COALESCE(MAX(version_number), 0) + 1 AS next_version FROM cv_versions WHERE user_id = %s",
+                    (int(user_id),)
                 )
                 next_version = cursor.fetchone()['next_version']
                 
@@ -245,6 +245,7 @@ def get_user_evolution(user_id):
     query = """
     SELECT 
         id as version_id,
+        version_number,
         job_offer_id,
         compatibility_score,
         created_at

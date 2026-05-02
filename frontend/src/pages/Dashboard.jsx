@@ -20,7 +20,7 @@ export default function Dashboard() {
         if(Array.isArray(data)) {
             // Format data for chart
             const chartData = data.map((item, index) => ({
-                name: `V${item.version_number}`,
+                name: `V${index + 1}`,
                 score: item.compatibility_score,
                 date: new Date(item.created_at).toLocaleDateString()
             }));
