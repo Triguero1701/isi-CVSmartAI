@@ -1,20 +1,34 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Configure the Generative AI client with the API key
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+def _generate_with_fallback(prompt: str):
+    """
+    Helper function to attempt generation with gemini-2.5-flash and fallback to gemini-pro if not available.
+    """
+    try:
+        return client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+    except Exception as e:
+        print(f"Fallback to gemini-pro due to: {e}")
+        return client.models.generate_content(
+            model='gemini-pro',
+            contents=prompt
+        )
 
 def analyze_cv_with_gemini(cv_text: str, job_offer_text: str) -> dict:
     """
     Analyzes the extracted CV text against the job offer text using Gemini.
     Forces the response to be in a specific JSON format via prompting.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
     prompt = f"""
 Eres un experto reclutador de Recursos Humanos y evaluador ATS (Applicant Tracking System).
 Tu tarea es analizar semánticamente un Currículum Vitae frente a una descripción de Oferta de Empleo.
@@ -45,7 +59,7 @@ Calcula el compatibility_score como un porcentaje de coincidencia entre las habi
 Asegúrate de que la salida sea ÚNICAMENTE JSON para poder hacer parseo automático.
 """
     
-    response = model.generate_content(prompt)
+    response = _generate_with_fallback(prompt)
     
     # Try to parse the response as JSON
     response_text = response.text.strip()
@@ -76,8 +90,6 @@ def extract_job_offer_data(text: str) -> dict:
     """
     Extracts structured job offer data (title, company, keywords) from raw scraped text using Gemini.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
     prompt = f"""
 Extrae la información principal de esta oferta de trabajo en bruto escrapeada de internet.
 
@@ -93,7 +105,7 @@ La estructura EXACTA debe ser:
   "description": "Un resumen de 2 o 3 párrafos de la oferta."
 }}
 """
-    response = model.generate_content(prompt)
+    response = _generate_with_fallback(prompt)
     response_text = response.text.strip()
     
     if response_text.startswith("```json"):

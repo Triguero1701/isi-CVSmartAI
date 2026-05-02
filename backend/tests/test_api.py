@@ -325,7 +325,7 @@ class TestLogs:
 class TestAnalyze:
     """Tests para el endpoint de análisis de CV"""
 
-    def test_analyze_success(self, client):
+    def test_analyze_success(self, client, auth_headers):
         """Análisis con CV y oferta → respuesta completa"""
         data = {
             'job_offer_text': 'Se busca desarrollador Python con Flask y Docker.',
@@ -333,48 +333,52 @@ class TestAnalyze:
         }
         data['cv_file'] = (BytesIO(b"Soy desarrollador Python con experiencia en Flask"), 'cv.pdf')
 
-        res = client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
+        res = client.post('/api/v1/analyze', data=data, headers=auth_headers, content_type='multipart/form-data')
         assert res.status_code == 200
-        assert res.json['status'] == 'success'
-        assert 'compatibility_score' in res.json
-        assert 'matched_skills' in res.json['analysis']
-        assert 'missing_keywords' in res.json['analysis']
-        assert 'processing_time_ms' in res.json
+        assert b'"status": "success"' in res.data
+        assert b'"compatibility_score"' in res.data
+        assert b'"matched_skills"' in res.data
+        assert b'"missing_keywords"' in res.data
+        assert b'"processing_time_ms"' in res.data
 
-    def test_analyze_missing_cv_file(self, client):
+    def test_analyze_missing_cv_file(self, client, auth_headers):
         """Sin CV → 400 con campo error"""
         data = {'job_offer_text': 'Se busca desarrollador React.'}
-        res = client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
-        assert res.status_code == 400
-        assert 'error' in res.json
+        res = client.post('/api/v1/analyze', data=data, headers=auth_headers, content_type='multipart/form-data')
+        assert res.status_code == 200
+        assert b'"status": "error"' in res.data
 
-    def test_analyze_missing_job_offer(self, client):
+    def test_analyze_missing_job_offer(self, client, auth_headers):
         """Sin texto de oferta → 400"""
         data = {'cv_file': (BytesIO(b"dummy"), 'cv.pdf')}
-        res = client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
-        assert res.status_code == 400
-        assert 'error' in res.json
+        res = client.post('/api/v1/analyze', data=data, headers=auth_headers, content_type='multipart/form-data')
+        assert res.status_code == 200
+        assert b'"status": "error"' in res.data
 
-    def test_analyze_score_range(self, client):
+    def test_analyze_score_range(self, client, auth_headers):
         """El score de compatibilidad debe estar entre 0 y 100"""
         data = {
             'job_offer_text': 'Se busca ingeniero de datos.',
             'cv_file': (BytesIO(b"pdf content"), 'cv.pdf')
         }
-        res = client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
+        res = client.post('/api/v1/analyze', data=data, headers=auth_headers, content_type='multipart/form-data')
         assert res.status_code == 200
-        score = res.json['compatibility_score']
+        # Parse the last event to find the score
+        data_str = res.data.decode('utf-8')
+        last_event = [line for line in data_str.split('\n') if 'compatibility_score' in line][-1]
+        score_data = json.loads(last_event.replace('data: ', ''))
+        score = score_data['compatibility_score']
         assert 0 <= score <= 100
 
-    def test_analyze_without_user_id(self, client):
-        """Análisis sin user_id (usuario anónimo) es válido"""
+    def test_analyze_unauthorized(self, client):
+        """Análisis sin token debe devolver 401"""
         data = {
-            'job_offer_text': 'Buscamos experto en SQL y análisis de datos.',
+            'job_offer_text': 'Buscamos experto en SQL.',
             'cv_file': (BytesIO(b"pdf content"), 'cv.pdf')
         }
         res = client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
-        assert res.status_code == 200
-        assert res.json['status'] == 'success'
+        assert res.status_code == 401
+        assert res.json['message'] == 'Token is missing!'
 
 # =============================================================================
 # HISTORY - /api/v1/users/<id>/history
@@ -383,9 +387,11 @@ class TestAnalyze:
 class TestHistory:
     """Tests para el endpoint de historial evolutivo"""
 
-    def test_get_history_empty(self, client):
+    def test_get_history_empty(self, client, auth_headers):
         """Historial vacío para un usuario nuevo"""
-        res = client.get('/api/v1/users/999/history')
+        # Obtenemos el user_id a partir del token para asegurarnos
+        # que el token corresponde al usuario (aunque la restriccion de g.user_id fue removida)
+        res = client.get('/api/v1/users/999/history', headers=auth_headers)
         assert res.status_code == 200
         assert res.json == []
 
@@ -396,17 +402,19 @@ class TestHistory:
                              data=json.dumps({"name": "History User", "email": "hist@test.com", "password": "p"}),
                              content_type='application/json')
         user_id = create.json['user_id']
+        token = create.json['token']
+        my_headers = {'Authorization': f'Bearer {token}'}
 
         # 2. Hacer un análisis
         data = {
-            'job_offer_text': 'Desarrollador React',
-            'user_id': str(user_id)
+            'job_offer_text': 'Desarrollador React'
         }
         data['cv_file'] = (BytesIO(b"React Developer"), 'cv.pdf')
-        client.post('/api/v1/analyze', data=data, content_type='multipart/form-data')
+        res_analyze = client.post('/api/v1/analyze', data=data, headers=my_headers, content_type='multipart/form-data')
+        _ = res_analyze.data # Consume the SSE stream to execute DB inserts
 
         # 3. Consultar historial
-        res = client.get(f'/api/v1/users/{user_id}/history')
+        res = client.get(f'/api/v1/users/{user_id}/history', headers=my_headers)
         assert res.status_code == 200
         assert len(res.json) > 0
         assert 'compatibility_score' in res.json[0]

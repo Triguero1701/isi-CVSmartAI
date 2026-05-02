@@ -116,7 +116,15 @@ def generate_fake_data(cursor):
 
     inserted_user_ids = []
     
-    for i in range(num_users):
+    # Ensure explicit admin user
+    admin_password = b"admin123"
+    cursor.execute(
+        "INSERT INTO users (name, email, password_hash, created_at) VALUES (%s, %s, %s, %s) RETURNING id",
+        ("Admin", "admin@cvsmartai.com", hashlib.sha256(admin_password).hexdigest(), datetime.now() - timedelta(days=40))
+    )
+    inserted_user_ids.append(cursor.fetchone()[0])
+    
+    for i in range(num_users - 1):
         name = f"{random.choice(first_names)} {random.choice(last_names)}"
         email = f"{name.lower().replace(' ', '.')}.{i}@{random.choice(domains)}"
         raw_password = f"pass{i}123".encode()

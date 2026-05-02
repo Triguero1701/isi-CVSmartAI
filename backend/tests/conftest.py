@@ -87,3 +87,17 @@ def client(app):
 @pytest.fixture
 def runner(app):
     return app.test_cli_runner()
+
+@pytest.fixture
+def auth_headers(client):
+    import json
+    # Register and login a user to get a valid token
+    payload = {
+        "name": "Test Auth User",
+        "email": "testauth@test.com",
+        "password": "secure_pass"
+    }
+    client.post('/api/v1/users/register', data=json.dumps(payload), content_type='application/json')
+    login_res = client.post('/api/v1/users/login', data=json.dumps({"email": "testauth@test.com", "password": "secure_pass"}), content_type='application/json')
+    token = login_res.json['token']
+    return {'Authorization': f'Bearer {token}'}

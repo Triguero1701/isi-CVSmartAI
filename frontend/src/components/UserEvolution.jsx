@@ -32,7 +32,9 @@ export default function UserEvolution() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          const chartData = data.map((item, index) => ({
+          // Sort by version_id (or date) to ensure strict sequential order
+          const sortedData = [...data].sort((a, b) => a.version_id - b.version_id);
+          const chartData = sortedData.map((item, index) => ({
             name: `V${index + 1}`,
             score: item.compatibility_score,
             date: new Date(item.created_at).toLocaleDateString()

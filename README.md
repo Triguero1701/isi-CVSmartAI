@@ -20,101 +20,91 @@ Asegúrate de tener instalados los siguientes programas en tu sistema:
 
 ---
 
-## 🚀 Instalación Paso a Paso
+## 🚀 Instalación y Despliegue (Recomendado: Docker)
 
-### 1. Clonar el repositorio
+La forma más rápida, limpia y recomendada de levantar todo el ecosistema (Base de Datos, Backend Flask y Frontend React) es utilizando Docker Compose.
 
-Abre tu terminal y clona el proyecto en la carpeta deseada:
+### 1. Clonar el repositorio y configurar el entorno
+
+Abre tu terminal y clona el proyecto:
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
 cd CVSmartAi
 ```
 
-*(Si ya descargaste el código manualmente, simplemente abre una terminal en la carpeta principal del proyecto `CVSmartAi`)*.
-
-### 2. Configurar el Backend (API de Flask)
-
-El backend expone la API REST que gestiona las peticiones de la plataforma y conecta con la base de datos. Se recomienda utilizar un entorno virtual para instalar las dependencias.
+Configura las variables de entorno para el backend copiando el archivo de ejemplo:
 
 ```bash
-# 1. Navegar a la carpeta del backend
-cd backend
-
-# 2. Crear un entorno virtual (puedes llamarlo 'venv')
-python -m venv venv
-
-# 3. Activar el entorno virtual
-# En Windows:
-venv\Scripts\activate
-# En macOS/Linux:
-source venv/bin/activate
-
-# 4. Instalar las dependencias requeridas
-pip install -r requirements.txt
+# En Windows
+copy backend\.env.example backend\.env
+# En macOS/Linux
+cp backend/.env.example backend/.env
 ```
 
-### 3. Configurar la Base de Datos (PostgreSQL via Docker) y Datos Fake
+Abre `backend/.env` y asegúrate de rellenar:
+- `JWT_SECRET_KEY`: Una clave secreta para la generación de tokens (por ejemplo: `mi_clave_super_secreta_123`).
+*(La URL de la base de datos `DATABASE_URL` se sobreescribe automáticamente en la red de Docker Compose).*
 
-El proyecto utiliza PostgreSQL para el almacenamiento de datos. Para facilitar el entorno, hemos incluido un archivo `docker-compose.yml` que levanta la base de datos automáticamente.
+### 2. Levantar la plataforma con Docker
 
-1. **Asegúrate de tener Docker instalado y en ejecución.**
-2. En la **raíz del proyecto**, ejecuta el siguiente comando para levantar el contenedor de la base de datos en segundo plano:
+Asegúrate de tener **Docker Desktop** (o el servicio de Docker daemon) en ejecución. En la raíz del proyecto, ejecuta:
 
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 ```
 
-3. **Configurar Variables de Entorno:**
-   Copia el archivo `backend/.env.example` y renómbralo a `.env`. Asegúrate de rellenar:
-   - `DATABASE_URL`: `postgresql://postgres:postgrespassword@localhost:5432/cvsmartai`
-   - `JWT_SECRET_KEY`: Una clave secreta para la generación de tokens (por ejemplo: `mi_clave_super_secreta_123`).
+Este comando descargará las imágenes, construirá el Backend y el Frontend, y levantará los tres servicios en segundo plano.
 
-4. **Poblar la base de datos (Estructura y Datos Ficticios):**
-   Asegúrate de estar en la **raíz del proyecto** con tu entorno virtual activado, y ejecuta el script de instalación para generar la estructura y los datos de prueba:
+### 3. Poblar la Base de Datos (Estructura y Datos Ficticios)
+
+Una vez que los contenedores estén corriendo, debes inicializar la base de datos y generar usuarios e historiales de prueba. Para ello, ejecuta el script de configuración *dentro* del contenedor del backend:
 
 ```bash
-python scripts/setup_db.py
+docker exec cvsmartai_backend python /scripts/setup_db.py
 ```
 
-Si todo va bien, verás mensajes indicando que la base de datos se ha creado correctamente y se han insertado los datos ficticios en la carpeta `/database`.
+Si todo va bien, verás mensajes indicando que la base de datos se ha creado correctamente y se han insertado los datos ficticios para el Dashboard.
 
-### 4. Levantar el Servidor Backend
+### 4. Acceder a la Aplicación
 
-Ahora que las dependencias están instaladas y la base de datos lista, puedes arrancar el servidor de desarrollo Flask.
+¡Todo está listo!
+- **Frontend (React)**: Abre tu navegador en [http://localhost:5173/](http://localhost:5173/)
+- **Backend (API Flask)**: Escuchando de fondo en [http://localhost:5000/](http://localhost:5000/)
 
-```bash
-# Navega a la carpeta backend si no estás en ella
-cd backend
-
-# Activa el entorno virtual si no está activado
-# (venv\Scripts\activate en Windows o source venv/bin/activate en Linux/Mac)
-
-# Ejecuta el servidor
-python run.py
-```
-
-El servidor arrancará e indicará que está escuchando en el puerto 5000: `http://127.0.0.1:5000`.
-**No cierres esta terminal**, mantenla abierta para que el backend siga activo.
+Los volúmenes de Docker están configurados para que cualquier cambio que hagas en tu editor sobre el código de `/frontend` o `/backend` se refleje automáticamente (*Hot-Reloading*) sin tener que reiniciar los contenedores manualmente.
 
 ---
 
-### 5. Abrir la Interfaz de Usuario (Frontend React)
+<details>
+<summary><b>Alternativa: Instalación Manual (Sin Dockerizar Frontend/Backend)</b></summary>
+<br>
 
-El frontend de la aplicación es una SPA moderna construida con React, Vite y módulos CSS que consumen nuestra API protegida por JWT.
+Si prefieres ejecutar el código localmente a la antigua usanza:
 
-1. Abre una nueva terminal y navega a la carpeta `/frontend/`.
-2. Instala las dependencias del cliente (necesitarás tener Node.js instalado):
+1. **Base de Datos**: Levanta solo Postgres (asegúrate de que en el `.env` el `DATABASE_URL` apunte a `localhost:5432`).
    ```bash
-   npm install
+   docker-compose up db -d
    ```
-3. Levanta el servidor de desarrollo del frontend:
+2. **Backend**:
    ```bash
+   cd backend
+   python -m venv venv
+   # Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
+   pip install -r requirements.txt
+   python run.py
+   ```
+3. **Datos de Prueba**: (En otra terminal, con el `venv` activado)
+   ```bash
+   python scripts/setup_db.py
+   ```
+4. **Frontend**:
+   ```bash
+   cd frontend
+   npm install
    npm run dev
    ```
-4. Abre tu navegador en `http://localhost:5173/`. La interfaz aplicará su diseño Glassmorphism y se conectará automáticamente al backend `http://localhost:5000/api/v1/...`.
-
-*(Opcionalmente, existe un Dashboard Legacy Vanilla JS en `/GUI/` que puedes abrir simplemente haciendo doble clic en `index.html`, pero la funcionalidad avanzada de exportación, diffing y SSE reside en la versión de React).*
+</details>
 
 ---
 

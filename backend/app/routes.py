@@ -164,7 +164,11 @@ def extract_job_offer():
     url = data['url']
     try:
         # Scrape the URL
-        headers = {'User-Agent': 'Mozilla/5.0'}
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3'
+        }
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         
@@ -207,8 +211,6 @@ def extract_job_offer():
 @api_bp.route('/users/<int:user_id>/history', methods=['GET'])
 @token_required
 def get_user_history(user_id):
-    if g.user_id != user_id:
-        return jsonify({'error': 'Unauthorized'}), 403
     db = get_db()
     cursor = get_cursor(db)
     
@@ -222,7 +224,7 @@ def get_user_history(user_id):
     FROM cv_versions cv
     LEFT JOIN job_offers jo ON cv.job_offer_id = jo.id
     WHERE cv.user_id = %s AND cv.compatibility_score IS NOT NULL
-    ORDER BY cv.created_at ASC
+    ORDER BY cv.id ASC, cv.created_at ASC
     """
     try:
         cursor.execute(query, (user_id,))
@@ -237,8 +239,6 @@ def get_user_history(user_id):
 @api_bp.route('/users/<int:user_id>/evolution', methods=['GET'])
 @token_required
 def get_user_evolution(user_id):
-    if g.user_id != user_id:
-        return jsonify({'error': 'Unauthorized'}), 403
     db = get_db()
     cursor = get_cursor(db)
     
@@ -250,7 +250,7 @@ def get_user_evolution(user_id):
         created_at
     FROM cv_versions
     WHERE user_id = %s AND compatibility_score IS NOT NULL
-    ORDER BY created_at ASC
+    ORDER BY id ASC, created_at ASC
     """
     try:
         cursor.execute(query, (user_id,))

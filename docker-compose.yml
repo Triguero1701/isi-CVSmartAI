@@ -14,5 +14,34 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  backend:
+    build: ./backend
+    container_name: cvsmartai_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Sobrescribimos localhost por 'db' para la red interna de Docker
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/cvsmartai
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+      - ./scripts:/scripts
+
+  frontend:
+    build: ./frontend
+    container_name: cvsmartai_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
 volumes:
   pgdata:
