@@ -12,7 +12,7 @@ The project is built on a modular, fully operational architecture, recently migr
   * **Endpoints (`app/routes.py`)**: 
     - Full CRUD support for `/api/v1/users`, `/api/v1/skills`, and `/api/v1/logs`. All protected routes use a custom `@token_required` middleware.
     - Custom Endpoint: `/api/v1/analyze` (POST) Pre-registers CV versions, utilizes Google Document AI for extraction, and evaluates CVs against job offers using Google Gemini. **Now streams real-time feedback via Server-Sent Events (SSE)**.
-    - Custom Endpoint: `/api/v1/job-offers/extract` (POST) Automates web scraping of job descriptions using `BeautifulSoup` and formats the data using Gemini.
+    - Custom Endpoint: `/api/v1/job-offers/extract` (POST) Automates web scraping of job descriptions. Now utilizes **ScraperAPI** to bypass advanced anti-bot protections (like DataDome/Cloudflare), extracts HTML with `BeautifulSoup`, and formats structured data using Gemini. Includes defensive prompting to handle scraping errors gracefully.
     - Custom Endpoints: `/api/v1/users/<id>/history` & `/api/v1/users/<id>/evolution` (GET) Return chronological history of a user's CV versions. Recently updated to allow admin-level multi-user visualization with strict chronological ordering (`ORDER BY id ASC, created_at ASC`).
     - Auth Endpoints: `/api/v1/users/register` and `/api/v1/users/login` (POST) handle secure user signup and JWT token generation.
   * **Integrations (`app/parser.py`, `app/llm_engine.py`)**: Connects to Google Document AI and Google Gemini with robust error handling and fallback models.
@@ -33,7 +33,7 @@ The project is built on a modular, fully operational architecture, recently migr
   * Recently updated to include a "User Evolution" tab connecting to the `/history` endpoint.
 
 * **Root Files**:
-  * `docker-compose.yml`: Spins up a `postgres:15-alpine` container (`cvsmartai_db`) automatically mapping port 5432.
+  * `docker-compose.yml`: Spins up the full stack: a `postgres:15-alpine` container (`cvsmartai_db`), the Flask `cvsmartai_backend` (port 5000), and the Vite React `cvsmartai_frontend` (port 5173).
   * `README.md`: Central documentation for environment setup, Docker configuration, and evaluation protocols.
   * `README2.md`: Additional setup or deployment instructions.
 
