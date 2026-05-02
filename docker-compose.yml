@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cvsmartai_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: cvsmartai
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: cvsmartai_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Sobrescribimos localhost por 'db' para la red interna de Docker
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/cvsmartai
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+      - ./scripts:/scripts
+
+  frontend:
+    build: ./frontend
+    container_name: cvsmartai_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

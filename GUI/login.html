@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVSmartAI Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+    <div class="login-shell">
+        <section class="login-brand glass">
+            <p class="kicker">Welcome Back</p>
+            <h1><span class="gradient-text">CVSmartAI</span></h1>
+            <p class="brand-copy">
+                Resume intelligence and compatibility analytics in one focused workspace.
+                Sign in to continue to your dashboard.
+            </p>
+
+            <div class="brand-stats">
+                <article>
+                    <span>2.3k+</span>
+                    <p>Profiles analyzed</p>
+                </article>
+                <article>
+                    <span>98.7%</span>
+                    <p>Pipeline uptime</p>
+                </article>
+                <article>
+                    <span>124 ms</span>
+                    <p>Avg. matching latency</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="login-card glass" aria-labelledby="login-title">
+            <header>
+                <h2 id="login-title">Sign In</h2>
+                <p>Use your team credentials to access the dashboard.</p>
+            </header>
+
+            <form class="login-form" action="upload.html" method="get">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="name@company.com" required>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" placeholder="Enter your password" required>
+
+                <div class="login-row">
+                    <label class="remember-me" for="remember">
+                        <input id="remember" name="remember" type="checkbox">
+                        Remember me
+                    </label>
+                    <a href="#" class="link-muted">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-primary login-submit">Sign In</button>
+            </form>
+
+            <footer class="login-footer">
+                New to CVSmartAI? <a href="#">Request access</a>
+            </footer>
+        </section>
+    </div>
+</body>
+</html>

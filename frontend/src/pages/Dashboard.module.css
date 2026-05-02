@@ -1,0 +1,43 @@
+.chartCard {
+    height: 350px;
+    margin-top: 2rem;
+}
+
+.metricsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metricCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.metricTitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metricValue {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.metricValue.glowing {
+    text-shadow: 0 0 20px rgba(88, 166, 255, 0.4);
+}
+
+.metricSub {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}

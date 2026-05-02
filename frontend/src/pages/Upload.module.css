@@ -1,0 +1,163 @@
+.uploadGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 900px) {
+    .uploadGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.formGroup textarea {
+    width: 100%;
+    min-height: 120px;
+    background: rgba(13, 17, 23, 0.65);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    color: #fff;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.formGroup textarea:focus {
+    border-color: var(--accent);
+}
+
+.fileDropZone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.fileDropZone:hover, .fileDropZone.dragActive {
+    border-color: var(--accent);
+    background: rgba(88, 166, 255, 0.05);
+}
+
+.uploadIcon {
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.fileDropZone p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.fileDropZone span {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.submitBtn {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    margin-top: 1rem;
+}
+
+/* Results Area */
+.resultsArea {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.scoreCircle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto;
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.2), transparent);
+    border: 4px solid var(--accent);
+    box-shadow: 0 0 30px rgba(88, 166, 255, 0.3);
+}
+
+.scoreCircle h2 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin: 0;
+}
+
+.scoreCircle span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.feedbackSection h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+}
+
+.tag.success {
+    color: #3fb950;
+    border-color: rgba(63, 185, 80, 0.4);
+    background: rgba(63, 185, 80, 0.1);
+}
+
+.tag.danger {
+    color: #f85149;
+    border-color: rgba(248, 81, 73, 0.4);
+    background: rgba(248, 81, 73, 0.1);
+}
+
+.priorityList {
+    list-style: none;
+}
+
+.priorityList li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.priorityList li::before {
+    content: "•";
+    color: var(--accent);
+    font-weight: bold;
+}

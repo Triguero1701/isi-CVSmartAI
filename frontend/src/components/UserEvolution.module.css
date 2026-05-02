@@ -1,0 +1,73 @@
+.evolutionContainer {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.selectorContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.selectorLabel {
+  font-weight: 500;
+  color: #c9d1d9;
+}
+
+.userSelect {
+  background-color: rgba(22, 27, 34, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #c9d1d9;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+  min-width: 200px;
+}
+
+.userSelect:focus {
+  border-color: #58a6ff;
+}
+
+.chartCard {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(22, 27, 34, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  height: 350px;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chartTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin: 0;
+}
+
+.glowingValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #58a6ff;
+  text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+}
+
+.noData {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8b949e;
+  font-style: italic;
+}

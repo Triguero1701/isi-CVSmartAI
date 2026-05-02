@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVSmartAI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="gradient-text">CVSmartAI</span>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-target="users-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Users
+                </button>
+                <button class="nav-item" data-target="skills-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    Skills Dictionary
+                </button>
+                <button class="nav-item" data-target="logs-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Analysis Logs
+                </button>
+                <button class="nav-item" data-target="history-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    User Evolution
+                </button>
+                <button class="nav-item" data-target="analyze-view">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Analyze CV
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>Dashboard Overview</h1>
+                <div class="status-indicator">
+                    <span class="dot"></span> API Connected
+                </div>
+            </header>
+
+            <div class="view-container active-view" id="users-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>Registered Users</h2>
+                        <button class="btn-primary" onclick="loadUsers()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Joined At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="skills-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>Skills Dictionary</h2>
+                        <button class="btn-primary" onclick="loadSkills()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="skills-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Keyword</th>
+                                    <th>Category</th>
+                                    <th>Aliases</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="logs-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>Analysis Logs</h2>
+                        <button class="btn-primary" onclick="loadLogs()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Compatibility Score</th>
+                                    <th>Processing Time</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="history-view">
+                <div class="card glass">
+                    <div class="card-header">
+                        <h2>User Evolution (CV Versions)</h2>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="number" id="history-user-id" value="1" min="1" style="width: 80px; border: 1px solid var(--border); background: rgba(13, 17, 23, 0.65); color: #fff; border-radius: 6px; padding: 0.3rem 0.5rem; outline: none;">
+                            <button class="btn-primary" onclick="loadHistory()">View User</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Version ID</th>
+                                    <th>Version Number</th>
+                                    <th>Job Offer</th>
+                                    <th>Compatibility Score</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container" id="analyze-view">
+                <div class="upload-layout">
+                    <!-- Left: Form -->
+                    <div class="upload-card glass">
+                        <header>
+                            <h2>🚀 Upload & Analyze CV</h2>
+                            <p>Select a PDF and provide the job description to match.</p>
+                        </header>
+                        <form id="analyze-form" class="upload-form">
+                            <!-- Job Offer -->
+                            <div class="login-form">
+                                <label for="job-offer-text">Job Offer Description</label>
+                                <textarea id="job-offer-text" required rows="4" placeholder="Paste the job offer text here..." style="width: 100%; border: 1px solid var(--border); background: rgba(13, 17, 23, 0.65); color: #fff; border-radius: 8px; padding: 0.7rem 0.85rem; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; resize: vertical; font-family: inherit; font-size: 0.95rem;"></textarea>
+                            </div>
+                            
+                            <!-- User ID -->
+                            <div class="login-form" style="margin-top: 5px;">
+                                <label for="analyze-user-id">User ID (Optional)</label>
+                                <input type="number" id="analyze-user-id" placeholder="e.g. 1" min="1" style="width: 100%; border: 1px solid var(--border); background: rgba(13, 17, 23, 0.65); color: #fff; border-radius: 8px; padding: 0.5rem 0.85rem; outline: none;">
+                            </div>
+
+                            <!-- Dropzone -->
+                            <div class="dropzone" id="cv-dropzone" style="margin-top: 1rem;">
+                                <input type="file" id="cv-file" accept="application/pdf" required>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="margin: 0 auto 10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div class="dropzone-title">Click to upload or drag and drop</div>
+                                <div class="dropzone-subtitle">PDF (MAX. 10MB)</div>
+                                <div class="file-meta" id="file-name-display" style="margin-top: 10px; font-weight: bold; color: var(--accent);"></div>
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit" class="btn-primary upload-submit" id="analyze-submit-btn" style="margin-top: 1rem;">
+                                Analyze Compatibility
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Results -->
+                    <div class="upload-intro glass" id="analyze-results-panel" style="display: none; flex-direction: column;">
+                        <header style="margin-bottom: 1.5rem;">
+                            <h2>📊 Analysis Results</h2>
+                        </header>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+                            <div>
+                                <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Compatibility Score</div>
+                                <div id="result-score-number" style="font-size: 3rem; font-weight: 700; line-height: 1; transition: color 0.5s;">0%</div>
+                            </div>
+                            <div style="width: 80px; height: 80px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--text-muted) 0%, rgba(255,255,255,0.1) 0%); transition: background 0.5s;" id="result-score-gauge">
+                                <div style="width: 64px; height: 64px; background: var(--card-bg); border-radius: 50%;"></div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; gap: 1.5rem;">
+                            <div>
+                                <h3 style="font-size: 1.1rem; color: #3fb950; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Matched Skills</h3>
+                                <div id="result-matched-skills" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 style="font-size: 1.1rem; color: #f85149; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Missing Keywords</h3>
+                                <div id="result-missing-keywords" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 style="font-size: 1.1rem; color: var(--accent); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> Priority Improvements</h3>
+                                <ul id="result-improvements" class="upload-notes">
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h3 style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 0.8rem;">📄 Extracted Text Preview</h3>
+                                <div id="result-text-preview" style="font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); max-height: 150px; overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
