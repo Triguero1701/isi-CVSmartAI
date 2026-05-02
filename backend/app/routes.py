@@ -163,28 +163,44 @@ def extract_job_offer():
         
     url = data['url']
     try:
-        # Scrape the URL
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3'
+        from urllib.parse import urlencode
+        
+        api_key = os.environ.get('SCRAPER_API_KEY')
+        if not api_key or api_key == "PON_TU_CLAVE_AQUI":
+            return jsonify({"status": "error", "message": "Falta configurar la clave de ScraperAPI en el backend (archivo .env)."}), 500
+
+        payload = {
+            'api_key': api_key, 
+            'url': url,
+            'render': 'true' # Renderizar JS
         }
-        response = requests.get(url, headers=headers, timeout=10)
+        scraper_url = 'http://api.scraperapi.com/?' + urlencode(payload)
+        
+        response = requests.get(scraper_url, timeout=60)
         response.raise_for_status()
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Remove script and style elements
+        # Eliminar scripts y estilos para extraer solo texto visible
         for script in soup(["script", "style", "nav", "footer"]):
             script.extract()
             
         text = soup.get_text(separator=' ', strip=True)
-        
+                
+        if not text or not text.strip():
+            raise Exception("El contenido devuelto por ScraperAPI está vacío.")
+            
         # Limit text to avoid exceeding token limits
         text = text[:15000]
         
         # Extract structured data using Gemini
         extracted_data = extract_job_offer_data(text)
+        
+        if extracted_data.get("error") == "anti_bot_detected":
+            return jsonify({
+                "status": "error", 
+                "message": "La plataforma bloqueó la extracción automática (Anti-Bots). Por favor, copia y pega el texto de la oferta manualmente."
+            }), 400
         
         # Insert into database
         db = get_db()

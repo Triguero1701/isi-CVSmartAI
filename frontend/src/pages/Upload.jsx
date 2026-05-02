@@ -30,10 +30,12 @@ export default function Upload() {
             body: JSON.stringify({ url: jobUrl })
         });
         const data = await res.json();
-        if (data.status === 'success') {
+        if (res.ok && data.status === 'success') {
             setJobText(`Título: ${data.data.title}\nEmpresa: ${data.data.company}\n\nDescripción:\n${data.data.description}\n\nKeywords requeridas: ${data.data.keywords.join(', ')}`);
+        } else if (res.status === 400 && data.message?.includes('Anti-Bots')) {
+            alert(`⚠️ Protección Anti-Bots Detectada:\n\n${data.message}\n\nUsa el cuadro de texto de abajo para pegar la información directamente.`);
         } else {
-            alert('Error al extraer: ' + data.message);
+            alert('Error al extraer: ' + (data.message || 'Error desconocido'));
         }
     } catch(err) {
         alert('Error de conexión');
@@ -130,6 +132,9 @@ export default function Upload() {
                         {extracting ? 'Extrayendo...' : 'Extraer'}
                     </button>
                 </div>
+                <small style={{display: 'block', marginBottom: '15px', color: 'var(--text-muted)'}}>
+                    * Si la extracción automática falla por bloqueos (ej. InfoJobs, LinkedIn), puedes copiar y pegar el texto de la oferta manualmente en el cuadro inferior.
+                </small>
                 
                 <label>Descripción de la Oferta (Manual o Extraída)</label>
                 <textarea 

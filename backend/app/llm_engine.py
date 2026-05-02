@@ -89,14 +89,22 @@ Asegúrate de que la salida sea ÚNICAMENTE JSON para poder hacer parseo automá
 def extract_job_offer_data(text: str) -> dict:
     """
     Extracts structured job offer data (title, company, keywords) from raw scraped text using Gemini.
+    Detects if the text is an anti-bot or captcha error message.
     """
     prompt = f"""
-Extrae la información principal de esta oferta de trabajo en bruto escrapeada de internet.
+Analiza el siguiente texto en bruto escrapeado de internet.
 
 Texto de la oferta:
 {text}
 
-Debes responder estricta y únicamente con un objeto JSON válido, sin formato markdown ni texto adicional.
+INSTRUCCIÓN CRÍTICA DE SEGURIDAD:
+Primero, determina si el texto parece ser un mensaje de error de acceso, un bloqueo por anti-bots (ej. Cloudflare, "Verifica que eres humano"), una solicitud para habilitar JavaScript o Cookies, o simplemente una página de política de privacidad/cookies en lugar de una oferta real.
+Si detectas que el texto es un error de scraping y no una oferta de empleo genuina, tu respuesta debe ser EXACTAMENTE el siguiente JSON y nada más:
+{{
+  "error": "anti_bot_detected"
+}}
+
+Si, por el contrario, el texto sí parece ser una oferta de trabajo válida, extrae la información principal y responde estricta y únicamente con un objeto JSON válido, sin formato markdown ni texto adicional.
 La estructura EXACTA debe ser:
 {{
   "title": "Título del puesto de trabajo",
