@@ -14,8 +14,8 @@ Asegúrate de tener instalado lo siguiente en tu máquina:
 Abre tu terminal y clona el proyecto en tu máquina local:
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
-cd CVSmartAi
+git clone https://github.com/Triguero1701/isi-CVSmartAI.git
+cd isi-CVSmartAi
 ```
 
 ## ⚙️ Paso 2: Configuración de Variables de Entorno
