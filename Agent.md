@@ -18,8 +18,6 @@ The project is built on a modular, fully operational architecture, recently migr
   * **Integrations (`app/parser.py`, `app/llm_engine.py`)**: Connects to Google Document AI and Google Gemini with robust error handling and fallback models.
   * **Testing (`tests/`)**: Robust validation suite (`test_api.py`, `test_db.py`, `conftest.py`). Uses an isolated, dynamically created PostgreSQL test database (`cvsmartai_test`) per session. 100% passing rates.
 
-* **`/database/`**: (Deprecated functionality) Previously used for SQLite, now fully replaced by Dockerized PostgreSQL.
-
 * **`/scripts/`**: Utility & Maintenance.
   * Contains `setup_db.py`, which initializes the PostgreSQL database tables and populates realistic, evolutionary mock data (users, job offers, version progressions, analysis logs).
 
@@ -28,9 +26,6 @@ The project is built on a modular, fully operational architecture, recently migr
   * Utilizes Glassmorphism and CSS Modules (`Dashboard.module.css`, `Login.module.css`, etc.) for a premium UI.
   * Includes charts mapping the progressive `compatibility_score` evolution of candidates and a `VersionCompare.jsx` component for visual skill diffing between CV versions.
 
-* **`/GUI/`**: Legacy Plain HTML/JS Vanilla Frontend Dashboard.
-  * Maintained as a functional lightweight fallback if Node.js is not present in the host environment.
-  * Recently updated to include a "User Evolution" tab connecting to the `/history` endpoint.
 
 * **Root Files**:
   * `docker-compose.yml`: Spins up the full stack: a `postgres:15-alpine` container (`cvsmartai_db`), the Flask `cvsmartai_backend` (port 5000), and the Vite React `cvsmartai_frontend` (port 5173).

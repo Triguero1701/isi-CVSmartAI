@@ -33,8 +33,11 @@ El backend requiere ciertas credenciales para conectarse a Google Cloud Document
 
 2. Abre el nuevo archivo `.env` en tu editor de código y completa los valores necesarios:
    - `DOCAI_PROJECT_ID`: Tu ID de proyecto en Google Cloud.
+   - `DOCAI_LOCATION`: La ubicación de tu proyecto en Google Cloud (por ejemplo, "eu").
    - `DOCAI_PROCESSOR_ID`: El ID de tu procesador en Document AI.
    - `GEMINI_API_KEY`: Tu clave de API para Google Gemini.
+   - `SCRAPER_API_KEY`: Tu clave de API para ScraperAPI.
+   - `DATABASE_URL`: La URL de conexión a la base de datos PostgreSQL.
    - `JWT_SECRET_KEY`: Una cadena segura para firmar los tokens de autenticación.
 
 3. **Credenciales de Google Cloud:** 
