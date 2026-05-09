@@ -33,24 +33,11 @@ cd isi-CVSmartAI
 
 El backend requiere credenciales para conectarse a Google Cloud (Document AI) y Gemini, además de claves de seguridad locales.
 
-1. **Crear archivo `.env`:**
-   Navega a la carpeta del backend y copia el archivo de ejemplo:
-   ```bash
-   cd backend
-   cp .env.example .env  # (En Windows usa: copy .env.example .env)
-   ```
+1. **Archivo `.env`:**
+   En la carpeta del backend copia el archivo `.env` proporcionado.
 
-2. **Rellenar el archivo `.env`:**
-   Abre el nuevo archivo `.env` en tu editor y completa los valores:
-   - `GEMINI_API_KEY`: Tu clave de API obtenida en Google AI Studio.
-   - `SCRAPER_API_KEY`: Tu clave de ScraperAPI para extraer ofertas.
-   - `DATABASE_URL`: `postgresql://postgres:postgrespassword@db:5432/cvsmartai`
-   - `JWT_SECRET_KEY`: `cvsmartai_super_secret_key` (o cualquier cadena segura).
-   - `DOCAI_PROJECT_ID`, `DOCAI_LOCATION`, `DOCAI_PROCESSOR_ID`: Credenciales de tu procesador OCR en Google Cloud (Instrucciones abajo).
-
-3. **Credenciales de Google Cloud (Document AI):**
-   - Asegúrate de tener un procesador **Document OCR** creado en Google Cloud Console.
-   - Descarga el archivo JSON de tu cuenta de servicio de Google Cloud.
+2. **Credenciales de Google Cloud (Document AI):**
+   - Descarga el archivo JSON proporcionado.
    - Guárdalo exactamente en la ruta: `backend/credentials/service_account.json`.
 
 Vuelve a la raíz del proyecto para continuar:
