@@ -132,3 +132,52 @@ La estructura EXACTA debe ser:
             "keywords": [],
             "description": text[:500] + "..."
         }
+
+def optimize_cv_json(cv_text: str, skills_to_add: list) -> dict:
+    """
+    Extráe el texto del CV, incrusta las nuevas habilidades de forma orgánica y devuelve un JSON estructurado.
+    Respeta estrictamente la longitud para evitar desbordamientos en la plantilla de 1 página.
+    """
+    prompt = f"""
+    Eres un optimizador de CVs. Recibes el texto bruto de un CV.
+    Tu objetivo es extraer la información en una estructura JSON e incrustar orgánicamente estas habilidades: {', '.join(skills_to_add)}.
+    
+    REGLA DE ORO (LONGITUD ESTRICTA):
+    - La descripción de cada "experience" debe mantenerse concisa (máximo 3 bullet points o una frase corta).
+    - El "summary" no debe exceder los 400 caracteres.
+    - La suma total del texto no puede hacer que el CV exceda 1 página. Sé directo y conciso.
+    
+    Devuelve EXACTAMENTE la siguiente estructura JSON, y nada más. Sin formato markdown (```json).
+    {{
+        "personal_info": {{"name": "Nombre", "email": "Email", "phone": "Teléfono", "title": "Título profesional"}},
+        "summary": "Resumen profesional...",
+        "experience": [
+            {{"role": "Rol", "company": "Empresa", "duration": "Duración", "description": "Descripción..."}}
+        ],
+        "education": [
+            {{"degree": "Título", "institution": "Institución", "year": "Año"}}
+        ],
+        "skills": ["skill1", "skill2"]
+    }}
+    
+    Texto Original del Currículum:
+    {cv_text}
+    """
+    response = _generate_with_fallback(prompt)
+    response_text = response.text.strip()
+    
+    if response_text.startswith("```json"):
+        response_text = response_text.replace("```json", "", 1)
+    if response_text.endswith("```"):
+        response_text = response_text[::-1].replace("```", "", 1)[::-1]
+        
+    try:
+        return json.loads(response_text.strip())
+    except json.JSONDecodeError:
+        return {
+            "personal_info": {"name": "Error", "email": "", "phone": "", "title": ""},
+            "summary": "Hubo un error al procesar el CV.",
+            "experience": [],
+            "education": [],
+            "skills": skills_to_add
+        }

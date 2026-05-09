@@ -26,7 +26,7 @@ export default function Login() {
       if (response.ok && data.status === 'success') {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user_id', data.user_id);
-        navigate('/dashboard');
+        navigate('/upload');
       } else {
         setError(data.message || (isLogin ? 'Error en inicio de sesión' : 'Error en registro'));
       }

@@ -11,7 +11,7 @@ import psycopg2.extras
 from psycopg2.extras import Json
 from . import get_db
 from .parser import extract_text_from_pdf
-from .llm_engine import analyze_cv_with_gemini, extract_job_offer_data
+from .llm_engine import analyze_cv_with_gemini, extract_job_offer_data, optimize_cv_json
 
 api_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
@@ -144,6 +144,7 @@ def analyze_cv():
         # Final result
         result = {
             "status": "success",
+            "cv_version_id": cv_version_id,
             "extracted_text_preview": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text,
             "compatibility_score": compatibility_score,
             "analysis": gemini_analysis.get('analysis', {}),
@@ -152,6 +153,41 @@ def analyze_cv():
         yield f"data: {json.dumps(result)}\n\n"
 
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+# ----------------- IMPROVE CV -----------------
+@api_bp.route('/improve-cv', methods=['POST'])
+@token_required
+def improve_cv():
+    data = request.json
+    cv_version_id = data.get('cv_version_id')
+    skills_to_add = data.get('skills_to_add', [])
+    
+    if not cv_version_id:
+        return jsonify({'status': 'error', 'message': 'Falta cv_version_id'}), 400
+        
+    db = get_db()
+    cursor = get_cursor(db)
+    
+    try:
+        cursor.execute("SELECT extracted_text FROM cv_versions WHERE id = %s", (cv_version_id,))
+        cv_record = cursor.fetchone()
+        
+        if not cv_record or not cv_record['extracted_text']:
+            return jsonify({'status': 'error', 'message': 'CV no encontrado o vacío'}), 404
+            
+        cv_text = cv_record['extracted_text']
+        
+        # Optimize CV into JSON
+        optimized_json = optimize_cv_json(cv_text, skills_to_add)
+        
+        return jsonify({
+            'status': 'success',
+            'optimized_json': optimized_json
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        cursor.close()
 
 # ----------------- JOB OFFERS -----------------
 @api_bp.route('/job-offers/extract', methods=['POST'])
@@ -310,7 +346,10 @@ def register_user():
         }), 201
     except Exception as e:
         db.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 400
+        error_msg = str(e)
+        if 'users_email_key' in error_msg or 'duplicate key value' in error_msg:
+            return jsonify({"status": "error", "message": "Ese correo ya está registrado."}), 400
+        return jsonify({"status": "error", "message": error_msg}), 400
 
 @api_bp.route('/users/login', methods=['POST'])
 def login_user():

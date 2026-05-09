@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Link as LinkIcon, FileText } from 'lucide-react';
+import { createRoot } from 'react-dom/client';
+import CVTemplateModern from '../components/templates/CVTemplateModern';
+import { UploadCloud, Link as LinkIcon } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 import Sidebar from '../components/Sidebar';
 import styles from './Upload.module.css';
@@ -13,11 +15,72 @@ export default function Upload() {
   const [progressMessage, setProgressMessage] = useState('');
   const [results, setResults] = useState(null);
   const fileInputRef = useRef(null);
+  
+  // Modal states
+  const [showImproveModal, setShowImproveModal] = useState(false);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [improving, setImproving] = useState(false);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
+  };
+
+  const toggleSkill = (skill) => {
+      setSelectedSkills(prev => 
+          prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+      );
+  };
+
+  const handleImproveCV = async () => {
+      setImproving(true);
+      try {
+          const res = await fetchWithAuth('/improve-cv', {
+              method: 'POST',
+              body: JSON.stringify({
+                  cv_version_id: results.cv_version_id,
+                  skills_to_add: selectedSkills
+              })
+          });
+          const data = await res.json();
+          if (data.status === 'success') {
+              // Generate PDF using React component template
+              const html2pdf = (await import('html2pdf.js')).default;
+              
+              const container = document.createElement('div');
+              container.style.position = 'absolute';
+              container.style.left = '-9999px';
+              document.body.appendChild(container);
+              
+              const root = createRoot(container);
+              root.render(<CVTemplateModern data={data.optimized_json} />);
+              
+              // Wait a bit for React to render
+              setTimeout(() => {
+                  const opt = {
+                      margin:       0,
+                      filename:     'CV_Optimizado_Premium.pdf',
+                      image:        { type: 'jpeg', quality: 1 },
+                      html2canvas:  { scale: 2, useCORS: true },
+                      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                  };
+                  
+                  html2pdf().from(container.firstChild).set(opt).save().then(() => {
+                      root.unmount();
+                      document.body.removeChild(container);
+                  });
+                  setShowImproveModal(false);
+                  setImproving(false);
+              }, 500);
+          } else {
+              alert('Error al mejorar CV: ' + data.message);
+              setImproving(false);
+          }
+      } catch (e) {
+          alert('Error de conexión al mejorar CV.');
+          setImproving(false);
+      }
   };
 
   const handleExtract = async (e) => {
@@ -214,12 +277,46 @@ export default function Upload() {
                                   ))}
                               </ul>
                           </div>
+
+                          <div style={{marginTop: '2rem', textAlign: 'center'}}>
+                              <button onClick={() => setShowImproveModal(true)} className="btn-primary" style={{padding: '0.8rem 2rem', fontSize: '1.1rem'}}>✨ Mejorar CV Automáticamente</button>
+                          </div>
                       </>
                   )}
               </div>
           )}
         </div>
       </main>
+
+      {/* Modal Mejorar CV */}
+      {showImproveModal && (
+        <div className={styles.modalOverlay}>
+            <div className={`card glass ${styles.modalContent}`}>
+                <h2 style={{color: 'var(--text-main)', marginBottom: '0.5rem'}}>Selecciona tus habilidades</h2>
+                <p style={{color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem'}}>
+                    El análisis detectó que faltan estas keywords en tu CV. Selecciona las que realmente dominas para que la IA las incorpore de forma natural en tu nuevo currículum.
+                </p>
+                <div className={styles.skillCheckboxes}>
+                    {results.analysis?.missing_keywords?.length > 0 ? (
+                        results.analysis.missing_keywords.map((kw, i) => (
+                            <label key={i} className={styles.checkboxLabel}>
+                                <input type="checkbox" checked={selectedSkills.includes(kw)} onChange={() => toggleSkill(kw)} />
+                                {kw}
+                            </label>
+                        ))
+                    ) : (
+                        <p style={{color: 'var(--text-muted)'}}>No se detectaron keywords faltantes.</p>
+                    )}
+                </div>
+                <div style={{display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '2rem'}}>
+                    <button onClick={() => setShowImproveModal(false)} className="btn-secondary" style={{padding: '0.5rem 1rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-main)', borderRadius: '6px', cursor: 'pointer'}}>Cancelar</button>
+                    <button onClick={handleImproveCV} className="btn-primary" disabled={improving} style={{padding: '0.5rem 1rem'}}>
+                        {improving ? 'Generando PDF...' : 'Confirmar y Descargar'}
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   );
 }

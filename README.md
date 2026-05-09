@@ -1,188 +1,110 @@
-# CVSmartAI - Guía de Instalación y Uso
+# CVSmartAI: Agentic CV Screening & Optimization
 
-¡Bienvenido al repositorio de **CVSmartAI**! Este proyecto es una plataforma SaaS diseñada para optimizar los CVs de perfiles junior mediante inteligencia artificial, ayudando a superar los filtros automatizados ATS.
+CVSmartAI es una plataforma integral de análisis y optimización de currículums (CVs) basada en inteligencia artificial. Utiliza **Google Document AI** para extraer el contenido de los currículums con máxima precisión y **Google Gemini** para evaluar semánticamente los perfiles contra ofertas laborales reales, sugiriendo mejoras y permitiendo generar un CV optimizado dinámicamente en PDF.
 
-## ✨ Características Principales
-- **Análisis de Compatibilidad:** Evaluación semántica entre tu CV y ofertas de trabajo mediante Google Gemini.
-- **Scraping Automático:** Extracción de ofertas laborales desde URLs (LinkedIn, InfoJobs) automáticamente.
-- **Feedback en Tiempo Real:** Carga progresiva de los análisis usando SSE (Server-Sent Events).
-- **Seguridad (JWT):** Acceso protegido mediante autenticación por tokens.
-- **Dashboard Analítico y Reportes:** Gráficas de evolución, diffing visual de skills entre versiones de CVs, y exportación a PDF.
-
-A continuación, encontrarás la hoja de ruta paso a paso para tener todo el entorno funcionando correctamente en tu máquina local.
-
-## 📋 Requisitos Previos
-
-Asegúrate de tener instalados los siguientes programas en tu sistema:
-
-- **Python 3.8+** (Recomendado 3.10 o superior)
-- **Git**
+## 🚀 Arquitectura
+- **Frontend:** React + Vite (Interfaz dinámica con modo oscuro/claro y exportación a PDF).
+- **Backend:** Flask (Python) para orquestación de IA y lógica de negocio.
+- **Base de Datos:** PostgreSQL 15.
+- **Despliegue:** 100% contenerizado con Docker Compose.
 
 ---
 
-## 🚀 Instalación y Despliegue (Recomendado: Docker)
+## 📋 Requisitos Previos
 
-La forma más rápida, limpia y recomendada de levantar todo el ecosistema (Base de Datos, Backend Flask y Frontend React) es utilizando Docker Compose.
+Asegúrate de tener instalado en tu máquina local:
+- [Git](https://git-scm.com/)
+- [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
 
-### 1. Clonar el repositorio y configurar el entorno
+---
 
-Abre tu terminal y clona el proyecto:
+## 🛠️ Guía de Despliegue Paso a Paso
+
+### Paso 1: Clonar el Repositorio
+
+Abre tu terminal y clona el proyecto en tu máquina local:
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
-cd CVSmartAi
+git clone https://github.com/Triguero1701/isi-CVSmartAI.git
+cd isi-CVSmartAI
 ```
 
-Configura las variables de entorno para el backend copiando el archivo de ejemplo:
+### Paso 2: Configuración de Variables de Entorno y Credenciales
 
+El backend requiere credenciales para conectarse a Google Cloud (Document AI) y Gemini, además de claves de seguridad locales.
+
+1. **Crear archivo `.env`:**
+   Navega a la carpeta del backend y copia el archivo de ejemplo:
+   ```bash
+   cd backend
+   cp .env.example .env  # (En Windows usa: copy .env.example .env)
+   ```
+
+2. **Rellenar el archivo `.env`:**
+   Abre el nuevo archivo `.env` en tu editor y completa los valores:
+   - `GEMINI_API_KEY`: Tu clave de API obtenida en Google AI Studio.
+   - `SCRAPER_API_KEY`: Tu clave de ScraperAPI para extraer ofertas.
+   - `DATABASE_URL`: `postgresql://postgres:postgrespassword@db:5432/cvsmartai`
+   - `JWT_SECRET_KEY`: `cvsmartai_super_secret_key` (o cualquier cadena segura).
+   - `DOCAI_PROJECT_ID`, `DOCAI_LOCATION`, `DOCAI_PROCESSOR_ID`: Credenciales de tu procesador OCR en Google Cloud (Instrucciones abajo).
+
+3. **Credenciales de Google Cloud (Document AI):**
+   - Asegúrate de tener un procesador **Document OCR** creado en Google Cloud Console.
+   - Descarga el archivo JSON de tu cuenta de servicio de Google Cloud.
+   - Guárdalo exactamente en la ruta: `backend/credentials/service_account.json`.
+
+Vuelve a la raíz del proyecto para continuar:
 ```bash
-# En Windows
-copy backend\.env.example backend\.env
-# En macOS/Linux
-cp backend/.env.example backend/.env
+cd ..
 ```
 
-Abre `backend/.env` y asegúrate de rellenar:
-- `JWT_SECRET_KEY`: Una clave secreta para la generación de tokens (por ejemplo: `mi_clave_super_secreta_123`).
-*(La URL de la base de datos `DATABASE_URL` se sobreescribe automáticamente en la red de Docker Compose).*
+### Paso 3: Construcción y Ejecución con Docker
 
-### 2. Levantar la plataforma con Docker
-
-Asegúrate de tener **Docker Desktop** (o el servicio de Docker daemon) en ejecución. En la raíz del proyecto, ejecuta:
+Utiliza Docker Compose para construir todas las imágenes y levantar el ecosistema completo en segundo plano:
 
 ```bash
 docker-compose up --build -d
 ```
+*Este comando descargará las imágenes base, instalará las dependencias (Node y Python) y levantará PostgreSQL, Flask y React de forma orquestada.*
 
-Este comando descargará las imágenes, construirá el Backend y el Frontend, y levantará los tres servicios en segundo plano.
+### Paso 4: Poblar la Base de Datos
 
-### 3. Poblar la Base de Datos (Estructura y Datos Ficticios)
+Para que la plataforma funcione correctamente (y para tener datos realistas en el Dashboard), debes poblar la base de datos con nuestro script de configuración. Este script crea las tablas, inserta más de 45 habilidades (Hard/Soft Skills), crea ofertas de empleo de prueba y genera un historial generoso de usuarios ficticios y CVs analizados.
 
-Una vez que los contenedores estén corriendo, debes inicializar la base de datos y generar usuarios e historiales de prueba. Para ello, ejecuta el script de configuración *dentro* del contenedor del backend:
+Ejecuta el siguiente comando (con los contenedores corriendo):
 
 ```bash
 docker exec cvsmartai_backend python /scripts/setup_db.py
 ```
 
-Si todo va bien, verás mensajes indicando que la base de datos se ha creado correctamente y se han insertado los datos ficticios para el Dashboard.
+Al finalizar, el script creará automáticamente una **Cuenta de Administrador** para que puedas iniciar sesión sin tener que registrarte:
+- **Email:** `admin@cvsmartai.com`
+- **Contraseña:** `admin123`
 
-### 4. Acceder a la Aplicación
+### Paso 5: Acceder a la Aplicación
 
-¡Todo está listo!
-- **Frontend (React)**: Abre tu navegador en [http://localhost:5173/](http://localhost:5173/)
-- **Backend (API Flask)**: Escuchando de fondo en [http://localhost:5000/](http://localhost:5000/)
+¡Todo está listo! Puedes acceder a los servicios desde tu navegador:
 
-Los volúmenes de Docker están configurados para que cualquier cambio que hagas en tu editor sobre el código de `/frontend` o `/backend` se refleje automáticamente (*Hot-Reloading*) sin tener que reiniciar los contenedores manualmente.
-
----
-
-<details>
-<summary><b>Alternativa: Instalación Manual (Sin Dockerizar Frontend/Backend)</b></summary>
-<br>
-
-Si prefieres ejecutar el código localmente a la antigua usanza:
-
-1. **Base de Datos**: Levanta solo Postgres (asegúrate de que en el `.env` el `DATABASE_URL` apunte a `localhost:5432`).
-   ```bash
-   docker-compose up db -d
-   ```
-2. **Backend**:
-   ```bash
-   cd backend
-   python -m venv venv
-   # Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
-   pip install -r requirements.txt
-   python run.py
-   ```
-3. **Datos de Prueba**: (En otra terminal, con el `venv` activado)
-   ```bash
-   python scripts/setup_db.py
-   ```
-4. **Frontend**:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-</details>
+- **Plataforma Web (Frontend):** [http://localhost:5173](http://localhost:5173)
+- **API (Backend):** [http://localhost:5000](http://localhost:5000)
+- **Base de Datos:** Puerto `5432` en tu `localhost`.
 
 ---
 
-## ✅ Comprobación del Sistema (Testing)
+## 🛑 Comandos Útiles
 
-El proyecto incluye una robusta suite de pruebas unitarias (`pytest`). Si quieres comprobar que todos los endpoints y la base de datos funcionan según lo esperado, puedes correr los tests:
+- **Detener la aplicación:**
+  ```bash
+  docker-compose down
+  ```
+  *(Nota: Los datos de la base de datos se conservan en el volumen de Docker).*
 
-1. Abre una nueva terminal.
-2. Navega a la carpeta `/backend/`.
-3. Activa tu entorno virtual (`venv\Scripts\activate`).
-4. Ejecuta:
+- **Borrar todo (incluyendo la base de datos):**
+  ```bash
+  docker-compose down -v
+  ```
 
-   ```bash
-   pytest tests/
-   ```
-
-Verás que todos los tests pasarán al 100% de manera exitosa cubriendo rutas, registro de usuarios, base de datos en memoria (aislada), etc.
-
----
-
-## 👨‍🏫 Instrucciones para la Evaluación (Profesor)
-
-Por motivos de seguridad, **las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público**.
-
-Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un error si intentas analizar un PDF real. Sin embargo, el proyecto está preparado para su evaluación de dos formas:
-
-1. **Evaluación de Código y Lógica (Sin Facturación Google ni APIs):**
-   Puedes ejecutar toda la suite de tests (`pytest backend/tests/ -v`). En el código he implementado un sistema de *Mocks* (`unittest.mock.patch` en `conftest.py`) que simula la respuesta de los servidores de Google Document AI y del LLM Gemini. **Los tests pasarán en verde con un 100% de éxito demostrando que la API funciona** sin necesidad de crear proyectos ni añadir tarjetas de crédito.
-
-2. **Evaluación Funcional Completa (Conexión Real con Google Cloud y Gemini):**
-   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real así como el análisis semántico de Gemini LLM:
-
-   - **Opción Rápida (Recomendada para el profesor):** Pide al alumno los archivos de configuración ya preparados (`service_account.json` y un `.env` completo que incluye la `GEMINI_API_KEY`).
-     1. Coloca el `service_account.json` en `backend/credentials/`.
-     2. Coloca el archivo `.env` en la carpeta `backend/` (tienes un `backend/.env.example` como guía de la estructura).
-     3. Arranca el servidor Flask y la API procesará tu petición en directo.
-
-   - **Opción Manual (Si deseas usar tus propias credenciales):**
-     1. **Para Gemini LLM**: Obtén tu propia `GEMINI_API_KEY` en Google AI Studio y añádela a tu `.env`.
-     2. **Para Document AI**: Configura el procesador OCR y la cuenta de servicio en Google Cloud siguiendo estos pasos detallados:
-
-   **A. Configurar el Procesador en Document AI (Variables para el `.env`)**
-   1. Ve a la [Consola de Google Cloud](https://console.cloud.google.com/) e inicia sesión.
-   2. Crea un **Nuevo Proyecto** (o selecciona uno existente).
-   3. **Habilitar la Facturación (Billing):** Para usar Document AI, Google requiere asociar una **tarjeta de crédito** o débito al proyecto. *(No te preocupes, hay una capa gratuita que cubre de sobra las pruebas de esta evaluación sin generar ningún coste real)*.
-      - Abre el menú lateral izquierdo (icono de hamburguesa) y pulsa en **Facturación** (Billing).
-      - Selecciona **Vincular una cuenta de facturación** o haz clic en **Gestionar cuentas de facturación** > **Agregar cuenta de facturación**.
-      - Sigue los pasos en pantalla para introducir tus datos de pago y vincular la cuenta al proyecto.
-   4. En el buscador superior, busca **"Cloud Document AI API"** y haz clic en **Habilitar** (Enable).
-   5. En el menú lateral, ve a **Document AI > Procesadores** (Processors).
-   6. Haz clic en  galeria del processador y selecciona  **"Document OCR"** .
-   7. Asígnale un nombre, selecciona una región (ej. `eu` ) y créalo.
-   8. Una vez creado, entra en los detalles del procesador. Aquí encontrarás la información necesaria para el entorno:
-      - **ID del Proyecto** (`PROJECT_ID`) este id lo encontraras dandole en el icono de arriba a la izquierda de google coud
-      - **ID del Procesador** (`PROCESSOR_ID`) y - **Ubicación** (`LOCATION`, normalmente `eu` o `us`) para encontrar ambos en el buscador escribe document ai y dentro en la barra de la izqu selecciona mis procesadores elige la region que escogiste antes (UE) y aparecera el proceso que creaste antes dandole click aparecera en la informacion basica un campo llamado id que sera el id de procesador y la region (eu)
-   9. En la carpeta `backend/`, copia el archivo `.env.example` y renómbralo a `.env`. Rellena las variables con los datos obtenidos en el paso anterior y no olvides tu `GEMINI_API_KEY`.
-
-   **B. Obtener las credenciales de la Cuenta de Servicio (`service_account.json`)**
-   1. En la consola de Google Cloud, busca **"Cuentas de servicio"** (Service Accounts) dentro de *IAM y administración*.
-   2. Haz clic en **Crear cuenta de servicio** (Create service account). Dale un nombre y pulsa *Crear y continuar*.
-   3. En la sección de otorgar acceso, asígnale el rol de **Usuario de Document AI** (Document AI User) para que tenga permisos de invocar el procesador. Pulsa *Continuar* y luego *Listo*.
-   4. En la lista de cuentas de servicio, haz clic sobre el email de la cuenta que acabas de crear.
-   5. Ve a la pestaña **Claves** (Keys).
-   6. Haz clic en **Agregar clave** > **Crear clave nueva** y selecciona el formato **JSON**.
-   7. Se descargará un archivo a tu ordenador. Renombra este archivo descargado a `service_account.json`.
-   8. Coloca el archivo `service_account.json` dentro de la carpeta `backend/credentials/` del proyecto.
-
-   Una vez completados estos pasos (teniendo el `.env` y el `service_account.json` en sus respectivas rutas y con los datos correctos), puedes arrancar el servidor Flask (`python run.py`) y la API podrá procesar archivos PDF reales a través de tu proyecto de Google Cloud.
-
----
-
-## 📁 Estructura Principal del Proyecto (Resumen)
-
-- `/backend/`: Contiene la API Flask, rutas REST, y las configuraciones de CORS.
-- `/database/`: Aquí se almacena `cvsmartai.db`, generada en el paso 3.
-- `/GUI/`: Interfaz moderna con diseño Glassmorphism que ataca a la API.
-- `/scripts/`: Utilidades como `setup_db.py` que crea todo lo necesario.
-- `/tests/`: Suite de validación en Pytest para la API (dentro de backend).
-- `Agent.md`: Contexto arquitectónico interno del proyecto.
-
-¡Ya estás listo para empezar a desarrollar o utilizar **CVSmartAI** localmente!
+- **Ver los logs en tiempo real:**
+  ```bash
+  docker-compose logs -f
+  ```
