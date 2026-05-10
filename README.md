@@ -48,7 +48,7 @@ docker compose up --build -d
 ### 4. Poblar la Base de Datos
 Indispensable para el primer uso y para ver datos en el Dashboard:
 ```bash
-docker exec cvsmartai_backend python scripts/setup_db.py
+docker exec cvsmartai_backend python /scripts/setup_db.py
 ```
 *Esto creará un usuario administrador:*
 - **Email:** `admin@cvsmartai.com`
