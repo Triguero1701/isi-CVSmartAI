@@ -65,7 +65,14 @@ Para que la IA funcione, debe habilitar el servicio de lenguaje:
 2. Vaya a **API y servicios > Credenciales**.
 3. Pulse en **Crear credenciales > Clave de API**. Esta será su **`GEMINI_API_KEY`**.
 
-#### **D. Configuración del archivo `.env`**
+#### **D. Habilitar ScraperAPI (Opcional)**
+Para habilitar el scraping automático de ofertas desde URLs (Infojobs, LinkedIn, etc.):
+1. Regístrese de forma gratuita en [ScraperAPI.com](https://www.scraperapi.com/).
+2. En su Dashboard principal, verá un campo llamado **"API Key"**.
+3. Copie esa clave y póngala en su `.env` como **`SCRAPERAPI_KEY`**.
+*Nota: El plan gratuito incluye 1000 créditos, suficientes para las pruebas de evaluación.*
+
+#### **E. Configuración del archivo `.env`**
 Cree un archivo `.env` en la carpeta `backend/` con los siguientes valores:
 
 | Variable | Dónde obtenerla |
@@ -74,7 +81,7 @@ Cree un archivo `.env` en la carpeta `backend/` con los siguientes valores:
 | **`PROCESSOR_ID`** | ID del procesador OCR creado en el paso A. |
 | **`LOCATION`** | Por defecto `eu`. |
 | **`GEMINI_API_KEY`** | Clave de API obtenida en el paso C. |
-| **`SCRAPERAPI_KEY`** | (Opcional) De ScraperAPI.com para Infojobs. |
+| **`SCRAPERAPI_KEY`** | Clave obtenida en el paso D (Opcional). |
 | **`JWT_SECRET_KEY`** | Frase aleatoria para las sesiones. |
 
 ---
