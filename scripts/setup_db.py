@@ -94,13 +94,65 @@ def generate_fake_data(cursor):
 
     # 1. Generate Skills Dictionary
     skills = [
+        # Original
         ("React", "hard_skill", ["ReactJS", "React.js"]),
         ("Python", "hard_skill", ["Python 3", "py"]),
         ("Liderazgo", "soft_skill", ["Liderazgo de equipos", "Leadership"]),
         ("Comunicación", "soft_skill", ["Comunicación oral", "Comunicación escrita"]),
         ("SQL", "hard_skill", ["MySQL", "PostgreSQL", "SQLite"]),
         ("Machine Learning", "hard_skill", ["ML", "Aprendizaje Automático", "IA"]),
-        ("Proactividad", "soft_skill", ["Iniciativa", "Proactivo", "Autonomía"])
+        ("Proactividad", "soft_skill", ["Iniciativa", "Proactivo", "Autonomía"]),
+        
+        # New Hard Skills (30+)
+        ("Java", "hard_skill", ["Java 8", "Java 11", "Java 17", "J2EE"]),
+        ("C++", "hard_skill", ["CPP", "C plus plus"]),
+        ("C#", "hard_skill", ["C sharp", ".NET", "CSharp"]),
+        ("JavaScript", "hard_skill", ["JS", "ES6", "Vanilla JS"]),
+        ("TypeScript", "hard_skill", ["TS"]),
+        ("Node.js", "hard_skill", ["Node", "NodeJS"]),
+        ("Express.js", "hard_skill", ["Express", "ExpressJS"]),
+        ("Django", "hard_skill", ["Django Rest Framework", "DRF"]),
+        ("Flask", "hard_skill", ["Flask API"]),
+        ("Spring Boot", "hard_skill", ["Spring", "SpringBoot"]),
+        ("Angular", "hard_skill", ["AngularJS", "Angular 2+"]),
+        ("Vue.js", "hard_skill", ["Vue", "VueJS"]),
+        ("AWS", "hard_skill", ["Amazon Web Services", "AWS Cloud"]),
+        ("Azure", "hard_skill", ["Microsoft Azure"]),
+        ("Google Cloud", "hard_skill", ["GCP", "Google Cloud Platform"]),
+        ("Docker", "hard_skill", ["Docker Compose", "Contenedores"]),
+        ("Kubernetes", "hard_skill", ["K8s"]),
+        ("Git", "hard_skill", ["GitHub", "GitLab", "Bitbucket"]),
+        ("CI/CD", "hard_skill", ["Integración Continua", "Despliegue Continuo", "Jenkins", "GitHub Actions"]),
+        ("MongoDB", "hard_skill", ["Mongo", "NoSQL"]),
+        ("Redis", "hard_skill", ["Redis Cache"]),
+        ("Elasticsearch", "hard_skill", ["ELK"]),
+        ("GraphQL", "hard_skill", ["Graph QL", "Apollo"]),
+        ("REST API", "hard_skill", ["RESTful", "APIs REST"]),
+        ("Linux", "hard_skill", ["Ubuntu", "CentOS", "Debian", "Unix"]),
+        ("Terraform", "hard_skill", ["IaC", "Infraestructura como código"]),
+        ("Ansible", "hard_skill", ["Automatización", "Ansible Tower"]),
+        ("Ciberseguridad", "hard_skill", ["Seguridad Informática", "Pentesting", "OWASP"]),
+        ("Figma", "hard_skill", ["Diseño UI", "Diseño UX"]),
+        ("Data Science", "hard_skill", ["Ciencia de Datos", "Pandas", "NumPy"]),
+        ("TensorFlow", "hard_skill", ["Keras", "Deep Learning"]),
+        ("PyTorch", "hard_skill", ["Torch"]),
+        
+        # New Soft Skills (15+)
+        ("Gestión del tiempo", "soft_skill", ["Time Management", "Organización"]),
+        ("Resolución de problemas", "soft_skill", ["Problem Solving", "Pensamiento Crítico"]),
+        ("Trabajo en equipo", "soft_skill", ["Teamwork", "Colaboración"]),
+        ("Adaptabilidad", "soft_skill", ["Flexibilidad", "Resiliencia"]),
+        ("Empatía", "soft_skill", ["Inteligencia Emocional"]),
+        ("Pensamiento Analítico", "soft_skill", ["Análisis Crítico", "Analytical Thinking"]),
+        ("Creatividad", "soft_skill", ["Innovación", "Pensamiento Creativo"]),
+        ("Negociación", "soft_skill", ["Capacidad de Negociación", "Persuasión"]),
+        ("Toma de decisiones", "soft_skill", ["Decision Making", "Criterio"]),
+        ("Atención al detalle", "soft_skill", ["Minuciosidad", "Detallista"]),
+        ("Gestión de conflictos", "soft_skill", ["Resolución de Conflictos", "Mediación"]),
+        ("Orientación a resultados", "soft_skill", ["Logro de Objetivos", "Resultados"]),
+        ("Capacidad de aprendizaje", "soft_skill", ["Aprendizaje Rápido", "Curiosidad"]),
+        ("Gestión del estrés", "soft_skill", ["Tolerancia a la presión", "Manejo del estrés"]),
+        ("Mentoría", "soft_skill", ["Coaching", "Desarrollo de talento"])
     ]
     
     for kw, cat, aliases in skills:
@@ -140,11 +192,22 @@ def generate_fake_data(cursor):
         inserted_user_ids.append(cursor.fetchone()[0])
 
     # 3. Generate Job Offers
-    cursor.execute(
-        "INSERT INTO job_offers (title, description, keywords) VALUES (%s, %s, %s) RETURNING id",
-        ("Desarrollador Full Stack", "Buscamos desarrollador Full Stack con experiencia en React y Python.", Json(["React", "Python", "SQL"]))
-    )
-    job_offer_id = cursor.fetchone()[0]
+    job_offers_data = [
+        ("Desarrollador Full Stack", "Buscamos desarrollador Full Stack con experiencia en React y Python.", ["React", "Python", "SQL", "Git", "Trabajo en equipo"]),
+        ("Ingeniero de Datos", "Se busca Data Engineer para construir pipelines de datos robustos y escalables.", ["Python", "SQL", "AWS", "Machine Learning", "Resolución de problemas"]),
+        ("Desarrollador Frontend Senior", "Experto en creación de interfaces de usuario dinámicas y accesibles.", ["JavaScript", "TypeScript", "React", "Vue.js", "Figma", "Atención al detalle"]),
+        ("Arquitecto Cloud", "Líder técnico para diseñar e implementar soluciones en la nube altamente disponibles.", ["AWS", "Google Cloud", "Kubernetes", "Docker", "Terraform", "Liderazgo"]),
+        ("Especialista en Ciberseguridad", "Responsable de auditar y proteger la infraestructura tecnológica de la empresa.", ["Ciberseguridad", "Linux", "Python", "Redes", "Pensamiento Analítico"]),
+        ("DevOps Engineer", "Ingeniero DevOps con pasión por la automatización y la cultura CI/CD.", ["CI/CD", "Docker", "Kubernetes", "Git", "Linux", "Gestión del tiempo"])
+    ]
+    
+    job_offer_ids = []
+    for title, desc, kws in job_offers_data:
+        cursor.execute(
+            "INSERT INTO job_offers (title, description, keywords) VALUES (%s, %s, %s) RETURNING id",
+            (title, desc, Json(kws))
+        )
+        job_offer_ids.append(cursor.fetchone()[0])
 
     # 4. Generate CV Versions and Analysis Logs
     # We want to simulate evolution for each user to make the Dashboard charts look good
@@ -160,6 +223,9 @@ def generate_fake_data(cursor):
         start_date = datetime.now() - timedelta(days=random.randint(10, 30))
 
         for version in range(1, num_versions + 1):
+            # Pick a random job offer for this version
+            current_job_offer_id = random.choice(job_offer_ids)
+            
             # Score improves with each version, capping at 95-100
             score = min(100, base_score + (version - 1) * random.randint(5, 15))
             time_ms = random.randint(300, 2000)
@@ -170,7 +236,7 @@ def generate_fake_data(cursor):
             # Insert cv_version
             cursor.execute(
                 "INSERT INTO cv_versions (user_id, job_offer_id, extracted_text, version_number, compatibility_score, created_at) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (user_id, job_offer_id, f"Texto extraído de la versión {version}...", version, score, log_date)
+                (user_id, current_job_offer_id, f"Texto extraído de la versión {version}...", version, score, log_date)
             )
             cv_version_id = cursor.fetchone()[0]
 

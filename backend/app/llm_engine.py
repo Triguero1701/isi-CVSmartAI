@@ -89,14 +89,22 @@ Asegúrate de que la salida sea ÚNICAMENTE JSON para poder hacer parseo automá
 def extract_job_offer_data(text: str) -> dict:
     """
     Extracts structured job offer data (title, company, keywords) from raw scraped text using Gemini.
+    Detects if the text is an anti-bot or captcha error message.
     """
     prompt = f"""
-Extrae la información principal de esta oferta de trabajo en bruto escrapeada de internet.
+Analiza el siguiente texto en bruto escrapeado de internet.
 
 Texto de la oferta:
 {text}
 
-Debes responder estricta y únicamente con un objeto JSON válido, sin formato markdown ni texto adicional.
+INSTRUCCIÓN CRÍTICA DE SEGURIDAD:
+Primero, determina si el texto parece ser un mensaje de error de acceso, un bloqueo por anti-bots (ej. Cloudflare, "Verifica que eres humano"), una solicitud para habilitar JavaScript o Cookies, o simplemente una página de política de privacidad/cookies en lugar de una oferta real.
+Si detectas que el texto es un error de scraping y no una oferta de empleo genuina, tu respuesta debe ser EXACTAMENTE el siguiente JSON y nada más:
+{{
+  "error": "anti_bot_detected"
+}}
+
+Si, por el contrario, el texto sí parece ser una oferta de trabajo válida, extrae la información principal y responde estricta y únicamente con un objeto JSON válido, sin formato markdown ni texto adicional.
 La estructura EXACTA debe ser:
 {{
   "title": "Título del puesto de trabajo",
@@ -123,4 +131,53 @@ La estructura EXACTA debe ser:
             "company": "Desconocida",
             "keywords": [],
             "description": text[:500] + "..."
+        }
+
+def optimize_cv_json(cv_text: str, skills_to_add: list) -> dict:
+    """
+    Extráe el texto del CV, incrusta las nuevas habilidades de forma orgánica y devuelve un JSON estructurado.
+    Respeta estrictamente la longitud para evitar desbordamientos en la plantilla de 1 página.
+    """
+    prompt = f"""
+    Eres un optimizador de CVs. Recibes el texto bruto de un CV.
+    Tu objetivo es extraer la información en una estructura JSON e incrustar orgánicamente estas habilidades: {', '.join(skills_to_add)}.
+    
+    REGLA DE ORO (LONGITUD ESTRICTA):
+    - La descripción de cada "experience" debe mantenerse concisa (máximo 3 bullet points o una frase corta).
+    - El "summary" no debe exceder los 400 caracteres.
+    - La suma total del texto no puede hacer que el CV exceda 1 página. Sé directo y conciso.
+    
+    Devuelve EXACTAMENTE la siguiente estructura JSON, y nada más. Sin formato markdown (```json).
+    {{
+        "personal_info": {{"name": "Nombre", "email": "Email", "phone": "Teléfono", "title": "Título profesional"}},
+        "summary": "Resumen profesional...",
+        "experience": [
+            {{"role": "Rol", "company": "Empresa", "duration": "Duración", "description": "Descripción..."}}
+        ],
+        "education": [
+            {{"degree": "Título", "institution": "Institución", "year": "Año"}}
+        ],
+        "skills": ["skill1", "skill2"]
+    }}
+    
+    Texto Original del Currículum:
+    {cv_text}
+    """
+    response = _generate_with_fallback(prompt)
+    response_text = response.text.strip()
+    
+    if response_text.startswith("```json"):
+        response_text = response_text.replace("```json", "", 1)
+    if response_text.endswith("```"):
+        response_text = response_text[::-1].replace("```", "", 1)[::-1]
+        
+    try:
+        return json.loads(response_text.strip())
+    except json.JSONDecodeError:
+        return {
+            "personal_info": {"name": "Error", "email": "", "phone": "", "title": ""},
+            "summary": "Hubo un error al procesar el CV.",
+            "experience": [],
+            "education": [],
+            "skills": skills_to_add
         }

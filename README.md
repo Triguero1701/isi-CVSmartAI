@@ -8,25 +8,13 @@
 
 ## 📚 Documentación del Proyecto
 - **[Documentación Técnica (Hito 3)](TECHNICAL_DOCUMENTATION.md)**: Arquitectura detallada, diagramas Mermaid, Referencia de API y Modelo de Datos.
-- **[Guía de Instalación Rápida (README2)](README2.md)**: Pasos simplificados para desplegar con Docker.
+- **[Manual de Usuario](USER_MANUAL.md)**: Guía de uso de la plataforma para el usuario final.
+- **[Estudio de Viabilidad](FEASIBILITY_STUDY.md)**: Análisis de costes y mercado.
 
 ---
 
-## ✨ Características Principales
-- **Análisis de Compatibilidad:** Evaluación semántica entre tu CV y ofertas de trabajo mediante Google Gemini.
-- **Scraping Automático:** Extracción de ofertas laborales desde URLs (LinkedIn, InfoJobs) automáticamente.
-- **Feedback en Tiempo Real:** Carga progresiva de los análisis usando SSE (Server-Sent Events).
-- **Seguridad (JWT):** Acceso protegido mediante autenticación por tokens.
-- **Dashboard Analítico y Reportes:** Gráficas de evolución, diffing visual de skills entre versiones de CVs, y exportación a PDF.
-
-A continuación, encontrarás la hoja de ruta paso a paso para tener todo el entorno funcionando correctamente en tu máquina local.
-
-## 📋 Requisitos Previos
-
-Asegúrate de tener instalados los siguientes programas en tu sistema:
-
-- **Python 3.8+** (Recomendado 3.10 o superior)
-- **Git**
+## 🚀 Sobre el Proyecto
+CVSmartAI es una plataforma integral de análisis y optimización de currículums (CVs) basada en inteligencia artificial. Utiliza **Google Document AI** para extraer el contenido de los currículums con máxima precisión y **Google Gemini** para evaluar semánticamente los perfiles contra ofertas laborales reales, sugiriendo mejoras y permitiendo generar un CV optimizado dinámicamente en PDF.
 
 ---
 
@@ -45,145 +33,70 @@ Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Do
 ### 📈 Monitorización de Salud
 Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
 - **Salud del Backend**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
-  - *Uso*: Puede conectarse a herramientas de monitorización externas para alertar de caídas de servicio.
 
 ---
 
-## 📋 Configuración del Entorno (Checklist)
-Antes de ejecutar el despliegue, verifica que tienes:
-1. El archivo **`.env`** en la carpeta `backend/`.
-2. El archivo **`service_account.json`** en `backend/credentials/`.
-3. La base de datos inicializada (ejecutar una vez tras el primer despliegue):
-   ```bash
-   docker exec cvsmartai_backend python scripts/setup_db.py
-   ```
+## 🛠️ Guía de Despliegue Paso a Paso
 
-Los volúmenes de Docker están configurados para que cualquier cambio que hagas en tu editor sobre el código de `/frontend` o `/backend` se refleje automáticamente (*Hot-Reloading*) sin tener que reiniciar los contenedores manualmente.
+### 1. Requisitos Previos
+Asegúrate de tener instalado:
+- [Git](https://git-scm.com/)
+- [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
 
----
+### 2. Configuración de Credenciales
+El backend requiere credenciales para conectarse a Google Cloud y Gemini.
+1. **Archivo `.env`**: Coloca tu archivo `.env` en la carpeta `backend/`.
+2. **Credenciales de Google**: Guarda tu `service_account.json` en `backend/credentials/`.
 
-<details>
-<summary><b>Alternativa: Instalación Manual (Sin Dockerizar Frontend/Backend)</b></summary>
-<br>
+### 3. Ejecución
+Desde la raíz del proyecto:
+```bash
+docker-compose up --build -d
+```
 
-Si prefieres ejecutar el código localmente a la antigua usanza:
+### 4. Poblar la Base de Datos
+Indispensable para el primer uso y para ver datos en el Dashboard:
+```bash
+docker exec cvsmartai_backend python scripts/setup_db.py
+```
+*Esto creará un usuario administrador:*
+- **Email:** `admin@cvsmartai.com`
+- **Contraseña:** `admin123`
 
-1. **Base de Datos**: Levanta solo Postgres (asegúrate de que en el `.env` el `DATABASE_URL` apunte a `localhost:5432`).
-   ```bash
-   docker-compose up db -d
-   ```
-2. **Backend**:
-   ```bash
-   cd backend
-   python -m venv venv
-   # Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
-   pip install -r requirements.txt
-   python run.py
-   ```
-3. **Datos de Prueba**: (En otra terminal, con el `venv` activado)
-   ```bash
-   python scripts/setup_db.py
-   ```
-4. **Frontend**:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-</details>
+### 5. Acceso
+- **Plataforma Web:** [http://localhost:5173](http://localhost:5173)
+- **API (Backend):** [http://localhost:5000](http://localhost:5000)
 
 ---
 
 ## ✅ Comprobación del Sistema (Testing)
-
-El proyecto incluye una robusta suite de pruebas unitarias (`pytest`). Si quieres comprobar que todos los endpoints y la base de datos funcionan según lo esperado, puedes correr los tests:
-
-1. Abre una nueva terminal.
-2. Navega a la carpeta `/backend/`.
-3. Activa tu entorno virtual (`venv\Scripts\activate`).
-4. Ejecuta:
-
-   ```bash
-   pytest tests/
-   ```
-
-Verás que todos los tests pasarán al 100% de manera exitosa cubriendo rutas, registro de usuarios, base de datos en memoria (aislada), etc.
-
----
-
-## 👨‍🏫 Instrucciones para la Evaluación (Profesor)
-
-Por motivos de seguridad, **las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público**.
-
-Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un error si intentas analizar un PDF real. Sin embargo, el proyecto está preparado para su evaluación de dos formas:
-
-1. **Evaluación de Código y Lógica (Sin Facturación Google ni APIs):**
-   Puedes ejecutar toda la suite de tests (`pytest backend/tests/ -v`). En el código he implementado un sistema de *Mocks* (`unittest.mock.patch` en `conftest.py`) que simula la respuesta de los servidores de Google Document AI y del LLM Gemini. **Los tests pasarán en verde con un 100% de éxito demostrando que la API funciona** sin necesidad de crear proyectos ni añadir tarjetas de crédito.
-
-2. **Evaluación Funcional Completa (Conexión Real con Google Cloud y Gemini):**
-   Si deseas probar el OCR de Google Document AI procesando un archivo PDF real así como el análisis semántico de Gemini LLM:
-
-   - **Opción Rápida (Recomendada para el profesor):** Pide al alumno los archivos de configuración ya preparados (`service_account.json` y un `.env` completo que incluye la `GEMINI_API_KEY`).
-     1. Coloca el `service_account.json` en `backend/credentials/`.
-     2. Coloca el archivo `.env` en la carpeta `backend/` (tienes un `backend/.env.example` como guía de la estructura).
-     3. Arranca el servidor Flask y la API procesará tu petición en directo.
-
-   - **Opción Manual (Si deseas usar tus propias credenciales):**
-     1. **Para Gemini LLM**: Obtén tu propia `GEMINI_API_KEY` en Google AI Studio y añádela a tu `.env`.
-     2. **Para Document AI**: Configura el procesador OCR y la cuenta de servicio en Google Cloud siguiendo estos pasos detallados:
-
-   **A. Configurar el Procesador en Document AI (Variables para el `.env`)**
-   1. Ve a la [Consola de Google Cloud](https://console.cloud.google.com/) e inicia sesión.
-   2. Crea un **Nuevo Proyecto** (o selecciona uno existente).
-   3. **Habilitar la Facturación (Billing):** Para usar Document AI, Google requiere asociar una **tarjeta de crédito** o débito al proyecto. *(No te preocupes, hay una capa gratuita que cubre de sobra las pruebas de esta evaluación sin generar ningún coste real)*.
-      - Abre el menú lateral izquierdo (icono de hamburguesa) y pulsa en **Facturación** (Billing).
-      - Selecciona **Vincular una cuenta de facturación** o haz clic en **Gestionar cuentas de facturación** > **Agregar cuenta de facturación**.
-      - Sigue los pasos en pantalla para introducir tus datos de pago y vincular la cuenta al proyecto.
-   4. En el buscador superior, busca **"Cloud Document AI API"** y haz clic en **Habilitar** (Enable).
-   5. En el menú lateral, ve a **Document AI > Procesadores** (Processors).
-   6. Haz clic en  galeria del processador y selecciona  **"Document OCR"** .
-   7. Asígnale un nombre, selecciona una región (ej. `eu` ) y créalo.
-   8. Una vez creado, entra en los detalles del procesador. Aquí encontrarás la información necesaria para el entorno:
-      - **ID del Proyecto** (`PROJECT_ID`) este id lo encontraras dandole en el icono de arriba a la izquierda de google coud
-      - **ID del Procesador** (`PROCESSOR_ID`) y - **Ubicación** (`LOCATION`, normalmente `eu` o `us`) para encontrar ambos en el buscador escribe document ai y dentro en la barra de la izqu selecciona mis procesadores elige la region que escogiste antes (UE) y aparecera el proceso que creaste antes dandole click aparecera en la informacion basica un campo llamado id que sera el id de procesador y la region (eu)
-   9. En la carpeta `backend/`, copia el archivo `.env.example` y renómbralo a `.env`. Rellena las variables con los datos obtenidos en el paso anterior y no olvides tu `GEMINI_API_KEY`.
-
-   **B. Obtener las credenciales de la Cuenta de Servicio (`service_account.json`)**
-   1. En la consola de Google Cloud, busca **"Cuentas de servicio"** (Service Accounts) dentro de *IAM y administración*.
-   2. Haz clic en **Crear cuenta de servicio** (Create service account). Dale un nombre y pulsa *Crear y continuar*.
-   3. En la sección de otorgar acceso, asígnale el rol de **Usuario de Document AI** (Document AI User) para que tenga permisos de invocar el procesador. Pulsa *Continuar* y luego *Listo*.
-   4. En la lista de cuentas de servicio, haz clic sobre el email de la cuenta que acabas de crear.
-   5. Ve a la pestaña **Claves** (Keys).
-   6. Haz clic en **Agregar clave** > **Crear clave nueva** y selecciona el formato **JSON**.
-   7. Se descargará un archivo a tu ordenador. Renombra este archivo descargado a `service_account.json`.
-   8. Coloca el archivo `service_account.json` dentro de la carpeta `backend/credentials/` del proyecto.
-
-   Una vez completados estos pasos (teniendo el `.env` y el `service_account.json` en sus respectivas rutas y con los datos correctos), puedes arrancar el servidor Flask (`python run.py`) y la API podrá procesar archivos PDF reales a través de tu proyecto de Google Cloud.
+Puedes ejecutar la suite de pruebas unitarias para validar los endpoints:
+```bash
+cd backend
+pytest tests/
+```
 
 ---
 
 ## 🎨 Estética Premium y UX (Hito 3)
-El proyecto ha sido diseñado siguiendo principios de **diseño moderno y minimalista**:
-- **Glassmorphism**: Interfaces translúcidas con desenfoque de fondo (*backdrop-filter*).
-- **Micro-interacciones**: Transiciones fluidas en botones, tarjetas y estados de carga.
-- **Fondo Animado**: Un gradiente dinámico sutil que mejora la experiencia visual sin distraer.
-- **Visualización de Datos**: Gráficas interactivas con *Recharts* para el seguimiento del progreso.
+- **Glassmorphism**: Interfaces translúcidas con desenfoque de fondo.
+- **Micro-interacciones**: Transiciones fluidas en botones y tarjetas.
+- **Fondo Animado**: Gradiente dinámico sutil.
+- **Visualización de Datos**: Gráficas interactivas con Recharts.
 
 ## ✅ Funcionalidad Total y Robustez
-- **Análisis Real-Time**: Implementación de *Server-Sent Events (SSE)* para un feedback progresivo.
-- **Validación de Archivos**: Filtros de seguridad para tipos de archivo (PDF) y límites de tamaño (10MB).
-- **IA Fallback**: Sistema de contingencia que asegura una respuesta incluso ante errores de formato de Gemini.
-- **Exportación Profesional**: Generación de reportes PDF descargables directamente desde el Dashboard.
+- **Análisis Real-Time**: Feedback progresivo mediante SSE.
+- **Validación de Archivos**: Filtros para PDFs y límites de 10MB.
+- **IA Fallback**: Sistema de contingencia ante errores de Gemini.
+- **Exportación Profesional**: Generación de reportes PDF descargables.
 
 ---
 
-## 📁 Estructura Principal del Proyecto (Resumen)
+## 📁 Estructura Principal del Proyecto
+- `/backend/`: API Flask, rutas REST y lógica de IA.
+- `/frontend/`: Interfaz moderna en React + Vite.
+- `/database/`: Almacenamiento persistente de PostgreSQL.
+- `/scripts/`: Utilidades como `setup_db.py`.
+- `/tests/`: Suite de validación en Pytest.
 
-- `/backend/`: Contiene la API Flask, rutas REST, y las configuraciones de CORS.
-- `/database/`: Aquí se almacena `cvsmartai.db`, generada en el paso 3.
-- `/GUI/`: Interfaz moderna con diseño Glassmorphism que ataca a la API.
-- `/scripts/`: Utilidades como `setup_db.py` que crea todo lo necesario.
-- `/tests/`: Suite de validación en Pytest para la API (dentro de backend).
-- `Agent.md`: Contexto arquitectónico interno del proyecto.
-
-¡Ya estás listo para empezar a desarrollar o utilizar **CVSmartAI** localmente!
+---

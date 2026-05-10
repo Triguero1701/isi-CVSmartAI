@@ -11,7 +11,7 @@ import psycopg2.extras
 from psycopg2.extras import Json
 from . import get_db
 from .parser import extract_text_from_pdf
-from .llm_engine import analyze_cv_with_gemini, extract_job_offer_data
+from .llm_engine import analyze_cv_with_gemini, extract_job_offer_data, optimize_cv_json
 
 api_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
@@ -157,6 +157,7 @@ def analyze_cv():
         # Final result
         result = {
             "status": "success",
+            "cv_version_id": cv_version_id,
             "extracted_text_preview": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text,
             "compatibility_score": compatibility_score,
             "analysis": gemini_analysis.get('analysis', {}),
@@ -165,6 +166,41 @@ def analyze_cv():
         yield f"data: {json.dumps(result)}\n\n"
 
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+# ----------------- IMPROVE CV -----------------
+@api_bp.route('/improve-cv', methods=['POST'])
+@token_required
+def improve_cv():
+    data = request.json
+    cv_version_id = data.get('cv_version_id')
+    skills_to_add = data.get('skills_to_add', [])
+    
+    if not cv_version_id:
+        return jsonify({'status': 'error', 'message': 'Falta cv_version_id'}), 400
+        
+    db = get_db()
+    cursor = get_cursor(db)
+    
+    try:
+        cursor.execute("SELECT extracted_text FROM cv_versions WHERE id = %s", (cv_version_id,))
+        cv_record = cursor.fetchone()
+        
+        if not cv_record or not cv_record['extracted_text']:
+            return jsonify({'status': 'error', 'message': 'CV no encontrado o vacío'}), 404
+            
+        cv_text = cv_record['extracted_text']
+        
+        # Optimize CV into JSON
+        optimized_json = optimize_cv_json(cv_text, skills_to_add)
+        
+        return jsonify({
+            'status': 'success',
+            'optimized_json': optimized_json
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        cursor.close()
 
 # ----------------- JOB OFFERS -----------------
 @api_bp.route('/job-offers/extract', methods=['POST'])
@@ -176,28 +212,44 @@ def extract_job_offer():
         
     url = data['url']
     try:
-        # Scrape the URL
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3'
+        from urllib.parse import urlencode
+        
+        api_key = os.environ.get('SCRAPER_API_KEY')
+        if not api_key or api_key == "PON_TU_CLAVE_AQUI":
+            return jsonify({"status": "error", "message": "Falta configurar la clave de ScraperAPI en el backend (archivo .env)."}), 500
+
+        payload = {
+            'api_key': api_key, 
+            'url': url,
+            'render': 'true' # Renderizar JS
         }
-        response = requests.get(url, headers=headers, timeout=10)
+        scraper_url = 'http://api.scraperapi.com/?' + urlencode(payload)
+        
+        response = requests.get(scraper_url, timeout=60)
         response.raise_for_status()
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Remove script and style elements
+        # Eliminar scripts y estilos para extraer solo texto visible
         for script in soup(["script", "style", "nav", "footer"]):
             script.extract()
             
         text = soup.get_text(separator=' ', strip=True)
-        
+                
+        if not text or not text.strip():
+            raise Exception("El contenido devuelto por ScraperAPI está vacío.")
+            
         # Limit text to avoid exceeding token limits
         text = text[:15000]
         
         # Extract structured data using Gemini
         extracted_data = extract_job_offer_data(text)
+        
+        if extracted_data.get("error") == "anti_bot_detected":
+            return jsonify({
+                "status": "error", 
+                "message": "La plataforma bloqueó la extracción automática (Anti-Bots). Por favor, copia y pega el texto de la oferta manualmente."
+            }), 400
         
         # Insert into database
         db = get_db()
@@ -307,7 +359,10 @@ def register_user():
         }), 201
     except Exception as e:
         db.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 400
+        error_msg = str(e)
+        if 'users_email_key' in error_msg or 'duplicate key value' in error_msg:
+            return jsonify({"status": "error", "message": "Ese correo ya está registrado."}), 400
+        return jsonify({"status": "error", "message": error_msg}), 400
 
 @api_bp.route('/users/login', methods=['POST'])
 def login_user():
