@@ -9,7 +9,6 @@
 ## 📚 Documentación del Proyecto
 - **[Documentación Técnica (Hito 3)](TECHNICAL_DOCUMENTATION.md)**: Arquitectura detallada, diagramas Mermaid, Referencia de API y Modelo de Datos.
 - **[Manual de Usuario](USER_MANUAL.md)**: Guía de uso de la plataforma para el usuario final.
-- **[Estudio de Viabilidad](FEASIBILITY_STUDY.md)**: Análisis de costes y mercado.
 
 ---
 
