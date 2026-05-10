@@ -60,7 +60,7 @@ El backend requiere credenciales para conectarse a Google Cloud y Gemini.
 ### 3. Ejecución
 Desde la raíz del proyecto:
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ### 4. Poblar la Base de Datos
