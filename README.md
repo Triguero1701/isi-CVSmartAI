@@ -38,10 +38,20 @@ Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
 
 ## 🛠️ Guía de Despliegue Paso a Paso
 
-### 1. Requisitos Previos
+### Requisitos Previos
 Asegúrate de tener instalado:
 - [Git](https://git-scm.com/)
 - [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
+
+
+### Paso 1: Clonar el Repositorio
+
+Abre tu terminal y clona el proyecto en tu máquina local:
+
+```bash
+git clone https://github.com/Triguero1701/isi-CVSmartAI.git
+cd isi-CVSmartAI
+```
 
 ### 2. Configuración de Credenciales
 El backend requiere credenciales para conectarse a Google Cloud y Gemini.
@@ -76,27 +86,4 @@ cd backend
 pytest tests/
 ```
 
----
 
-## 🎨 Estética Premium y UX (Hito 3)
-- **Glassmorphism**: Interfaces translúcidas con desenfoque de fondo.
-- **Micro-interacciones**: Transiciones fluidas en botones y tarjetas.
-- **Fondo Animado**: Gradiente dinámico sutil.
-- **Visualización de Datos**: Gráficas interactivas con Recharts.
-
-## ✅ Funcionalidad Total y Robustez
-- **Análisis Real-Time**: Feedback progresivo mediante SSE.
-- **Validación de Archivos**: Filtros para PDFs y límites de 10MB.
-- **IA Fallback**: Sistema de contingencia ante errores de Gemini.
-- **Exportación Profesional**: Generación de reportes PDF descargables.
-
----
-
-## 📁 Estructura Principal del Proyecto
-- `/backend/`: API Flask, rutas REST y lógica de IA.
-- `/frontend/`: Interfaz moderna en React + Vite.
-- `/database/`: Almacenamiento persistente de PostgreSQL.
-- `/scripts/`: Utilidades como `setup_db.py`.
-- `/tests/`: Suite de validación en Pytest.
-
----
