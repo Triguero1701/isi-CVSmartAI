@@ -18,20 +18,20 @@ CVSmartAI es una plataforma integral de análisis y optimización de currículum
 ---
 
 ## 🚢 Automatización del Despliegue
-
 Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Docker Compose**, lo que garantiza que la aplicación funcione exactamente igual en cualquier entorno (Local, Staging o Producción).
 
 ### ⚙️ Flujo de Despliegue Automatizado
-1.  **Construcción de Imágenes**: Las imágenes de Frontend y Backend se basan en entornos optimizados (Node 20-alpine y Python 3.10-slim).
+1.  **Construcción de Imágenes**: Las imágenes de Frontend y Backend se basan en entornos optimizados.
 2.  **Orquestación**: Docker Compose gestiona la red interna, el volumen de persistencia para PostgreSQL y el orden de encendido de los servicios.
 3.  **Comando Único**: Todo el ecosistema se levanta con un solo comando:
     ```bash
-    docker-compose up --build -d
+    docker compose up --build -d
     ```
 
 ### 📈 Monitorización de Salud
 Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
 - **Salud del Backend**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
+  - *Uso*: Puede conectarse a herramientas de monitorización externas para alertar de caídas de servicio.
 
 ---
 
@@ -41,7 +41,6 @@ Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
 Asegúrate de tener instalado:
 - [Git](https://git-scm.com/)
 - [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
-
 
 ### Paso 1: Clonar el Repositorio
 
@@ -66,23 +65,57 @@ docker compose up --build -d
 ### 4. Poblar la Base de Datos
 Indispensable para el primer uso y para ver datos en el Dashboard:
 ```bash
-docker exec cvsmartai_backend python /scripts/setup_db.py
+docker exec cvsmartai_backend python scripts/setup_db.py
 ```
 *Esto creará un usuario administrador:*
 - **Email:** `admin@cvsmartai.com`
 - **Contraseña:** `admin123`
 
-### 5. Acceso
-- **Plataforma Web:** [http://localhost:5173](http://localhost:5173)
-- **API (Backend):** [http://localhost:5000](http://localhost:5000)
-
 ---
 
-## ✅ Comprobación del Sistema (Testing)
-Puedes ejecutar la suite de pruebas unitarias para validar los endpoints:
-```bash
-cd backend
-pytest tests/
-```
+## 👨‍🏫 Instrucciones para la Evaluación (Profesor)
+
+Por motivos de seguridad, las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público. El proyecto está preparado para su evaluación de dos formas:
+
+### 1️⃣ Evaluación de Código y Lógica (Sin Facturación Google)
+Permite verificar que toda la lógica de la API y los endpoints funcionan mediante **Mocks**.
+1. Navega a la carpeta `backend/` y ejecute `pytest tests/ -v`.
+2. **Resultado**: Los tests pasarán al 100%, simulando la respuesta de Google Document AI y Gemini.
+
+### 2️⃣ Evaluación Funcional Completa (Conexión Real en Google Cloud)
+Si desea probar el flujo real, siga estos pasos detallados:
+
+#### **A. Configurar el Procesador en Document AI**
+1. Ve a la **Consola de Google Cloud** e inicia sesión.
+2. Cree un **Nuevo Proyecto** y habilite la facturación.
+3. Busque **"Cloud Document AI API"** y pulse en **Habilitar**.
+4. Ve a **Document AI > Procesadores** y cree uno de tipo **"Document OCR"** (Región: `eu`).
+5. Anote el **ID del Proyecto** y el **ID del Procesador**.
+
+#### **B. Obtener credenciales de la Cuenta de Servicio (`service_account.json`)**
+1. En la consola, busque **"Cuentas de servicio"** en IAM.
+2. Cree una cuenta con el rol **Usuario de Document AI**.
+3. Añada una clave **JSON**, descárguela y colóquela en `backend/credentials/service_account.json`.
+
+#### **C. Habilitar Gemini AI y obtener API KEY**
+1. Busque **"Generative Language API"** en la consola de Google Cloud y pulse en **Habilitar**.
+2. Vaya a **API y servicios > Credenciales**.
+3. Pulse en **Crear credenciales > Clave de API**. Esta será su **`GEMINI_API_KEY`**.
+
+#### **D. Habilitar ScraperAPI (Opcional)**
+1. Regístrese en [ScraperAPI.com](https://www.scraperapi.com/).
+2. Copie su **API Key** y póngala en su `.env`.
+
+#### **E. Configuración del archivo `.env`**
+Cree un archivo `.env` en `backend/` con estos valores:
+
+| Variable | Dónde obtenerla |
+| :--- | :--- |
+| **`PROJECT_ID`** | ID de su proyecto de Google Cloud. |
+| **`PROCESSOR_ID`** | ID del procesador OCR creado en el paso A. |
+| **`LOCATION`** | Por defecto `eu`. |
+| **`GEMINI_API_KEY`** | Clave de API obtenida en el paso C. |
+| **`SCRAPERAPI_KEY`** | Clave obtenida en el paso D (Opcional). |
+| **`JWT_SECRET_KEY`** | Frase aleatoria para las sesiones. |
 
 
