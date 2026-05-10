@@ -17,23 +17,6 @@ CVSmartAI es una plataforma integral de análisis y optimización de currículum
 
 ---
 
-## 🚢 Automatización del Despliegue
-Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Docker Compose**, lo que garantiza que la aplicación funcione exactamente igual en cualquier entorno (Local, Staging o Producción).
-
-### ⚙️ Flujo de Despliegue Automatizado
-1.  **Construcción de Imágenes**: Las imágenes de Frontend y Backend se basan en entornos optimizados.
-2.  **Orquestación**: Docker Compose gestiona la red interna, el volumen de persistencia para PostgreSQL y el orden de encendido de los servicios.
-3.  **Comando Único**: Todo el ecosistema se levanta con un solo comando:
-    ```bash
-    docker compose up --build -d
-    ```
-
-### 📈 Monitorización de Salud
-Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
-- **Salud del Backend**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
-  - *Uso*: Puede conectarse a herramientas de monitorización externas para alertar de caídas de servicio.
-
----
 
 ## 🛠️ Guía de Despliegue Paso a Paso
 
