@@ -23,11 +23,45 @@ Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Do
 
 ### ⚙️ Flujo de Despliegue Automatizado
 1.  **Construcción de Imágenes**: Las imágenes de Frontend y Backend se basan en entornos optimizados.
-2.  **Orquestación**: Docker Compose gestiona la red interna y la persistencia de datos.
-3.  **Comando Único**: Todo el ecosistema se levanta con:
+2.  **Orquestación**: Docker Compose gestiona la red interna, el volumen de persistencia para PostgreSQL y el orden de encendido de los servicios.
+3.  **Comando Único**: Todo el ecosistema se levanta con un solo comando:
     ```bash
     docker-compose up --build -d
     ```
+
+### 📈 Monitorización de Salud
+Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
+- **Salud del Backend**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
+  - *Uso*: Puede conectarse a herramientas de monitorización externas para alertar de caídas de servicio.
+
+---
+
+## 🛠️ Guía de Despliegue Paso a Paso
+
+### 1. Requisitos Previos
+Asegúrate de tener instalado:
+- [Git](https://git-scm.com/)
+- [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
+
+### 2. Configuración de Credenciales
+El backend requiere credenciales para conectarse a Google Cloud y Gemini.
+1. **Archivo `.env`**: Coloca tu archivo `.env` en la carpeta `backend/`.
+2. **Credenciales de Google**: Guarda tu `service_account.json` en `backend/credentials/`.
+
+### 3. Ejecución
+Desde la raíz del proyecto:
+```bash
+docker-compose up --build -d
+```
+
+### 4. Poblar la Base de Datos
+Indispensable para el primer uso y para ver datos en el Dashboard:
+```bash
+docker exec cvsmartai_backend python scripts/setup_db.py
+```
+*Esto creará un usuario administrador:*
+- **Email:** `admin@cvsmartai.com`
+- **Contraseña:** `admin123`
 
 ---
 
@@ -37,43 +71,35 @@ Por motivos de seguridad, las credenciales de Google Cloud (`.env` y `service_ac
 
 ### 1️⃣ Evaluación de Código y Lógica (Sin Facturación Google)
 Permite verificar que toda la lógica de la API y los endpoints funcionan mediante **Mocks**.
-1. Navega a la carpeta `backend/`.
-2. Ejecuta los tests: `pytest tests/ -v`.
-3. **Resultado**: Los tests pasarán al 100%, simulando la respuesta de Google Document AI y Gemini.
+1. Navega a la carpeta `backend/` y ejecute `pytest tests/ -v`.
+2. **Resultado**: Los tests pasarán al 100%, simulando la respuesta de Google Document AI y Gemini.
 
 ### 2️⃣ Evaluación Funcional Completa (Conexión Real en Google Cloud)
 Si desea probar el flujo real, siga estos pasos detallados:
 
 #### **A. Configurar el Procesador en Document AI**
 1. Ve a la **Consola de Google Cloud** e inicia sesión.
-2. Crea un **Nuevo Proyecto** (o selecciona uno existente).
-3. **Habilitar Facturación (Billing)**: Google requiere asociar una tarjeta (hay una capa gratuita generosa).
-4. Busca **"Cloud Document AI API"** y haz clic en **Habilitar**.
-5. Ve a **Document AI > Procesadores** y selecciona **"Document OCR"**.
-6. Asígnale un nombre, selecciona región **`eu`** y créalo.
-7. En los detalles del procesador, anote el **ID del Proyecto** (`PROJECT_ID`) y el **ID del Procesador** (`PROCESSOR_ID`).
+2. Cree un **Nuevo Proyecto** y habilite la facturación.
+3. Busque **"Cloud Document AI API"** y pulse en **Habilitar**.
+4. Ve a **Document AI > Procesadores** y cree uno de tipo **"Document OCR"** (Región: `eu`).
+5. Anote el **ID del Proyecto** y el **ID del Procesador**.
 
 #### **B. Obtener credenciales de la Cuenta de Servicio (`service_account.json`)**
-1. En la consola, busca **"Cuentas de servicio"** en IAM y administración.
-2. Crea una cuenta, asígnale el rol **Usuario de Document AI**.
-3. En la pestaña **Claves**, añade una nueva clave **JSON**.
-4. Descárgala, renómbrala a **`service_account.json`** y colócala en `backend/credentials/`.
+1. En la consola, busque **"Cuentas de servicio"** en IAM.
+2. Cree una cuenta con el rol **Usuario de Document AI**.
+3. Añada una clave **JSON**, descárguela y colóquela en `backend/credentials/service_account.json`.
 
 #### **C. Habilitar Gemini AI y obtener API KEY**
-Para que la IA funcione, debe habilitar el servicio de lenguaje:
-1. En el buscador de la consola, busca **"Generative Language API"** y pulsa en **Habilitar**.
+1. Busque **"Generative Language API"** en la consola de Google Cloud y pulse en **Habilitar**.
 2. Vaya a **API y servicios > Credenciales**.
 3. Pulse en **Crear credenciales > Clave de API**. Esta será su **`GEMINI_API_KEY`**.
 
 #### **D. Habilitar ScraperAPI (Opcional)**
-Para habilitar el scraping automático de ofertas desde URLs (Infojobs, LinkedIn, etc.):
-1. Regístrese de forma gratuita en [ScraperAPI.com](https://www.scraperapi.com/).
-2. En su Dashboard principal, verá un campo llamado **"API Key"**.
-3. Copie esa clave y póngala en su `.env` como **`SCRAPERAPI_KEY`**.
-*Nota: El plan gratuito incluye 1000 créditos, suficientes para las pruebas de evaluación.*
+1. Regístrese en [ScraperAPI.com](https://www.scraperapi.com/).
+2. Copie su **API Key** y póngala en su `.env`.
 
 #### **E. Configuración del archivo `.env`**
-Cree un archivo `.env` en la carpeta `backend/` con los siguientes valores:
+Cree un archivo `.env` en `backend/` con estos valores:
 
 | Variable | Dónde obtenerla |
 | :--- | :--- |
@@ -95,14 +121,5 @@ Cree un archivo `.env` en la carpeta `backend/` con los siguientes valores:
 - **Análisis Real-Time**: Feedback progresivo mediante SSE.
 - **Validación**: Filtros de seguridad para PDFs y límites de 10MB.
 - **IA Fallback**: Sistema de contingencia ante errores de formato.
-
----
-
-## 📁 Estructura Principal
-- `/backend/`: API Flask y lógica de IA.
-- `/frontend/`: Interfaz en React + Vite.
-- `/database/`: Persistencia PostgreSQL.
-- `/scripts/`: Script `setup_db.py` para inicializar la base de datos.
-- `/tests/`: Suite de validación Pytest.
 
 ---
