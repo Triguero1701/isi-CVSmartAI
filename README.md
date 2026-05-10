@@ -1,6 +1,16 @@
-# CVSmartAI - Guía de Instalación y Uso
+# CVSmartAI - SaaS de Optimización de CV con IA
 
-¡Bienvenido al repositorio de **CVSmartAI**! Este proyecto es una plataforma SaaS diseñada para optimizar los CVs de perfiles junior mediante inteligencia artificial, ayudando a superar los filtros automatizados ATS.
+[![Licencia](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![React](https://img.shields.io/badge/react-18-61dafb.svg)](https://reactjs.org/)
+
+---
+
+## 📚 Documentación del Proyecto
+- **[Documentación Técnica (Hito 3)](TECHNICAL_DOCUMENTATION.md)**: Arquitectura detallada, diagramas Mermaid, Referencia de API y Modelo de Datos.
+- **[Guía de Instalación Rápida (README2)](README2.md)**: Pasos simplificados para desplegar con Docker.
+
+---
 
 ## ✨ Características Principales
 - **Análisis de Compatibilidad:** Evaluación semántica entre tu CV y ofertas de trabajo mediante Google Gemini.

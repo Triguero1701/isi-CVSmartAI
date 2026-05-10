@@ -527,3 +527,10 @@ def delete_log(log_id):
     cursor.close()
     return jsonify({'message': 'Log deleted'})
 
+@api_bp.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": "cvsmartai-backend"
+    }), 200
