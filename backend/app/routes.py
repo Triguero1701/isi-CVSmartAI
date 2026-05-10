@@ -54,6 +54,19 @@ def analyze_cv():
             yield f"data: {json.dumps({'status': 'error', 'error': 'cv_file and job_offer_text are required.'})}\n\n"
             return
             
+        # Security & Robustness: Validate file type and size
+        if not cv_file.filename.lower().endswith('.pdf'):
+            yield f"data: {json.dumps({'status': 'error', 'error': 'El archivo debe ser un PDF válido.'})}\n\n"
+            return
+            
+        # Limit to 10MB to avoid memory issues
+        cv_file.seek(0, os.SEEK_END)
+        file_size = cv_file.tell()
+        cv_file.seek(0)
+        if file_size > 10 * 1024 * 1024:
+            yield f"data: {json.dumps({'status': 'error', 'error': 'El archivo es demasiado grande (máximo 10MB).'})}\n\n"
+            return
+            
         yield f"data: {json.dumps({'status': 'progress', 'message': 'Inicializando análisis...'})}\n\n"
         
         cv_version_id = None

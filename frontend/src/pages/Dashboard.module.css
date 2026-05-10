@@ -1,6 +1,12 @@
 .chartCard {
-    height: 350px;
+    height: 400px;
     margin-top: 2rem;
+    transition: var(--transition);
+}
+
+.chartCard:hover {
+    border-color: rgba(88, 166, 255, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 }
 
 .metricsGrid {
@@ -14,27 +20,36 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    transition: var(--transition);
+    cursor: default;
+}
+
+.metricCard:hover {
+    transform: translateY(-5px);
+    border-color: rgba(88, 166, 255, 0.3);
 }
 
 .metricTitle {
     color: var(--text-muted);
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .metricValue {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: 2.8rem;
+    font-weight: 800;
     color: #fff;
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
+    letter-spacing: -1px;
 }
 
 .metricValue.glowing {
-    text-shadow: 0 0 20px rgba(88, 166, 255, 0.4);
+    color: var(--accent);
+    text-shadow: 0 0 25px rgba(88, 166, 255, 0.5);
 }
 
 .metricSub {

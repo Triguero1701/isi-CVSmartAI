@@ -30,57 +30,33 @@ Asegúrate de tener instalados los siguientes programas en tu sistema:
 
 ---
 
-## 🚀 Instalación y Despliegue (Recomendado: Docker)
+## 🚢 Automatización del Despliegue
 
-La forma más rápida, limpia y recomendada de levantar todo el ecosistema (Base de Datos, Backend Flask y Frontend React) es utilizando Docker Compose.
+Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Docker Compose**, lo que garantiza que la aplicación funcione exactamente igual en cualquier entorno (Local, Staging o Producción).
 
-### 1. Clonar el repositorio y configurar el entorno
+### ⚙️ Flujo de Despliegue Automatizado
+1.  **Construcción de Imágenes**: Las imágenes de Frontend y Backend se basan en entornos optimizados (Node 20-alpine y Python 3.10-slim).
+2.  **Orquestación**: Docker Compose gestiona la red interna, el volumen de persistencia para PostgreSQL y el orden de encendido de los servicios.
+3.  **Comando Único**: Todo el ecosistema se levanta con un solo comando:
+    ```bash
+    docker-compose up --build -d
+    ```
 
-Abre tu terminal y clona el proyecto:
+### 📈 Monitorización de Salud
+Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
+- **Salud del Backend**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
+  - *Uso*: Puede conectarse a herramientas de monitorización externas para alertar de caídas de servicio.
 
-```bash
-git clone <URL_DEL_REPOSITORIO>
-cd CVSmartAi
-```
+---
 
-Configura las variables de entorno para el backend copiando el archivo de ejemplo:
-
-```bash
-# En Windows
-copy backend\.env.example backend\.env
-# En macOS/Linux
-cp backend/.env.example backend/.env
-```
-
-Abre `backend/.env` y asegúrate de rellenar:
-- `JWT_SECRET_KEY`: Una clave secreta para la generación de tokens (por ejemplo: `mi_clave_super_secreta_123`).
-*(La URL de la base de datos `DATABASE_URL` se sobreescribe automáticamente en la red de Docker Compose).*
-
-### 2. Levantar la plataforma con Docker
-
-Asegúrate de tener **Docker Desktop** (o el servicio de Docker daemon) en ejecución. En la raíz del proyecto, ejecuta:
-
-```bash
-docker-compose up --build -d
-```
-
-Este comando descargará las imágenes, construirá el Backend y el Frontend, y levantará los tres servicios en segundo plano.
-
-### 3. Poblar la Base de Datos (Estructura y Datos Ficticios)
-
-Una vez que los contenedores estén corriendo, debes inicializar la base de datos y generar usuarios e historiales de prueba. Para ello, ejecuta el script de configuración *dentro* del contenedor del backend:
-
-```bash
-docker exec cvsmartai_backend python /scripts/setup_db.py
-```
-
-Si todo va bien, verás mensajes indicando que la base de datos se ha creado correctamente y se han insertado los datos ficticios para el Dashboard.
-
-### 4. Acceder a la Aplicación
-
-¡Todo está listo!
-- **Frontend (React)**: Abre tu navegador en [http://localhost:5173/](http://localhost:5173/)
-- **Backend (API Flask)**: Escuchando de fondo en [http://localhost:5000/](http://localhost:5000/)
+## 📋 Configuración del Entorno (Checklist)
+Antes de ejecutar el despliegue, verifica que tienes:
+1. El archivo **`.env`** en la carpeta `backend/`.
+2. El archivo **`service_account.json`** en `backend/credentials/`.
+3. La base de datos inicializada (ejecutar una vez tras el primer despliegue):
+   ```bash
+   docker exec cvsmartai_backend python scripts/setup_db.py
+   ```
 
 Los volúmenes de Docker están configurados para que cualquier cambio que hagas en tu editor sobre el código de `/frontend` o `/backend` se refleje automáticamente (*Hot-Reloading*) sin tener que reiniciar los contenedores manualmente.
 
@@ -183,6 +159,21 @@ Si clonas este repositorio y arrancas el servidor, la aplicación lanzará un er
    8. Coloca el archivo `service_account.json` dentro de la carpeta `backend/credentials/` del proyecto.
 
    Una vez completados estos pasos (teniendo el `.env` y el `service_account.json` en sus respectivas rutas y con los datos correctos), puedes arrancar el servidor Flask (`python run.py`) y la API podrá procesar archivos PDF reales a través de tu proyecto de Google Cloud.
+
+---
+
+## 🎨 Estética Premium y UX (Hito 3)
+El proyecto ha sido diseñado siguiendo principios de **diseño moderno y minimalista**:
+- **Glassmorphism**: Interfaces translúcidas con desenfoque de fondo (*backdrop-filter*).
+- **Micro-interacciones**: Transiciones fluidas en botones, tarjetas y estados de carga.
+- **Fondo Animado**: Un gradiente dinámico sutil que mejora la experiencia visual sin distraer.
+- **Visualización de Datos**: Gráficas interactivas con *Recharts* para el seguimiento del progreso.
+
+## ✅ Funcionalidad Total y Robustez
+- **Análisis Real-Time**: Implementación de *Server-Sent Events (SSE)* para un feedback progresivo.
+- **Validación de Archivos**: Filtros de seguridad para tipos de archivo (PDF) y límites de tamaño (10MB).
+- **IA Fallback**: Sistema de contingencia que asegura una respuesta incluso ante errores de formato de Gemini.
+- **Exportación Profesional**: Generación de reportes PDF descargables directamente desde el Dashboard.
 
 ---
 
