@@ -69,7 +69,9 @@ Permite verificar que toda la lógica de la API y los endpoints funcionan median
 2. **Resultado**: Los tests pasarán al 100%, simulando la respuesta de Google Document AI y Gemini.
 
 ### 2️⃣ Evaluación Funcional Completa (Conexión Real en Google Cloud)
-Si desea probar el flujo real, siga estos pasos detallados:
+Puede encontrar un video describiendo el paso a paso para obtener la credenciales en el siguiente [ENLACE](https://drive.google.com/file/d/1LMhdOqsRmKTuL16RgBebmsaQUMDpLdIj/view?usp=sharing). 
+
+De todas formas, a continuación se detalla el paso a paso para obtenerlas. Si desea probar el flujo real, siga estos pasos detallados:
 
 #### **A. Configurar el Procesador en Document AI**
 1. Ve a la **Consola de Google Cloud** e inicia sesión.
