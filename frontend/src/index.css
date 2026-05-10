@@ -8,23 +8,34 @@
 :root {
     --bg-color: #0d1117;
     --sidebar-bg: #161b22;
-    --card-bg: rgba(22, 27, 34, 0.7);
+    --card-bg: rgba(22, 27, 34, 0.6);
     --text-main: #c9d1d9;
     --text-muted: #8b949e;
     --accent: #58a6ff;
-    --accent-hover: #3182ce;
-    --border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --accent-hover: #79c0ff;
+    --accent-glow: rgba(88, 166, 255, 0.4);
+    --border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.6;
     overflow-x: hidden;
-    background-image: radial-gradient(circle at top right, rgba(49, 130, 206, 0.1), transparent 400px),
-                      radial-gradient(circle at bottom left, rgba(88, 166, 255, 0.05), transparent 400px);
+    background: radial-gradient(circle at top right, rgba(88, 166, 255, 0.12), transparent 600px),
+                radial-gradient(circle at bottom left, rgba(163, 113, 247, 0.08), transparent 600px),
+                var(--bg-color);
+    background-size: 200% 200%;
+    animation: gradientBG 15s ease infinite;
     background-attachment: fixed;
 }
 

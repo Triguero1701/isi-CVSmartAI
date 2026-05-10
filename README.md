@@ -1,24 +1,47 @@
-# CVSmartAI: Agentic CV Screening & Optimization
+# CVSmartAI - SaaS de Optimización de CV con IA
 
-CVSmartAI es una plataforma integral de análisis y optimización de currículums (CVs) basada en inteligencia artificial. Utiliza **Google Document AI** para extraer el contenido de los currículums con máxima precisión y **Google Gemini** para evaluar semánticamente los perfiles contra ofertas laborales reales, sugiriendo mejoras y permitiendo generar un CV optimizado dinámicamente en PDF.
-
-## 🚀 Arquitectura
-- **Frontend:** React + Vite (Interfaz dinámica con modo oscuro/claro y exportación a PDF).
-- **Backend:** Flask (Python) para orquestación de IA y lógica de negocio.
-- **Base de Datos:** PostgreSQL 15.
-- **Despliegue:** 100% contenerizado con Docker Compose.
+[![Licencia](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![React](https://img.shields.io/badge/react-18-61dafb.svg)](https://reactjs.org/)
 
 ---
 
-## 📋 Requisitos Previos
+## 📚 Documentación del Proyecto
+- **[Documentación Técnica (Hito 3)](TECHNICAL_DOCUMENTATION.md)**: Arquitectura detallada, diagramas Mermaid, Referencia de API y Modelo de Datos.
+- **[Manual de Usuario](USER_MANUAL.md)**: Guía de uso de la plataforma para el usuario final.
 
-Asegúrate de tener instalado en tu máquina local:
-- [Git](https://git-scm.com/)
-- [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
+---
+
+## 🚀 Sobre el Proyecto
+CVSmartAI es una plataforma integral de análisis y optimización de currículums (CVs) basada en inteligencia artificial. Utiliza **Google Document AI** para extraer el contenido de los currículums con máxima precisión y **Google Gemini** para evaluar semánticamente los perfiles contra ofertas laborales reales, sugiriendo mejoras y permitiendo generar un CV optimizado dinámicamente en PDF.
+
+---
+
+## 🚢 Automatización del Despliegue
+
+Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Docker Compose**, lo que garantiza que la aplicación funcione exactamente igual en cualquier entorno (Local, Staging o Producción).
+
+### ⚙️ Flujo de Despliegue Automatizado
+1.  **Construcción de Imágenes**: Las imágenes de Frontend y Backend se basan en entornos optimizados (Node 20-alpine y Python 3.10-slim).
+2.  **Orquestación**: Docker Compose gestiona la red interna, el volumen de persistencia para PostgreSQL y el orden de encendido de los servicios.
+3.  **Comando Único**: Todo el ecosistema se levanta con un solo comando:
+    ```bash
+    docker-compose up --build -d
+    ```
+
+### 📈 Monitorización de Salud
+Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
+- **Salud del Backend**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
 
 ---
 
 ## 🛠️ Guía de Despliegue Paso a Paso
+
+### Requisitos Previos
+Asegúrate de tener instalado:
+- [Git](https://git-scm.com/)
+- [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
+
 
 ### Paso 1: Clonar el Repositorio
 
@@ -29,69 +52,37 @@ git clone https://github.com/Triguero1701/isi-CVSmartAI.git
 cd isi-CVSmartAI
 ```
 
-### Paso 2: Configuración de Variables de Entorno y Credenciales
+### 2. Configuración de Credenciales
+El backend requiere credenciales para conectarse a Google Cloud y Gemini.
+1. **Archivo `.env`**: Coloca tu archivo `.env` en la carpeta `backend/`.
+2. **Credenciales de Google**: Guarda tu `service_account.json` en `backend/credentials/`.
 
-El backend requiere credenciales para conectarse a Google Cloud (Document AI) y Gemini, además de claves de seguridad locales.
-
-1. **Archivo `.env`:**
-   En la carpeta del backend copia el archivo `.env` proporcionado.
-
-2. **Credenciales de Google Cloud (Document AI):**
-   - Descarga el archivo JSON proporcionado.
-   - Guárdalo exactamente en la ruta: `backend/credentials/service_account.json`.
-
-Vuelve a la raíz del proyecto para continuar:
-```bash
-cd ..
-```
-
-### Paso 3: Construcción y Ejecución con Docker
-
-Utiliza Docker Compose para construir todas las imágenes y levantar el ecosistema completo en segundo plano:
-
+### 3. Ejecución
+Desde la raíz del proyecto:
 ```bash
 docker-compose up --build -d
 ```
-*Este comando descargará las imágenes base, instalará las dependencias (Node y Python) y levantará PostgreSQL, Flask y React de forma orquestada.*
 
-### Paso 4: Poblar la Base de Datos
-
-Para que la plataforma funcione correctamente (y para tener datos realistas en el Dashboard), debes poblar la base de datos con nuestro script de configuración. Este script crea las tablas, inserta más de 45 habilidades (Hard/Soft Skills), crea ofertas de empleo de prueba y genera un historial generoso de usuarios ficticios y CVs analizados.
-
-Ejecuta el siguiente comando (con los contenedores corriendo):
-
+### 4. Poblar la Base de Datos
+Indispensable para el primer uso y para ver datos en el Dashboard:
 ```bash
 docker exec cvsmartai_backend python /scripts/setup_db.py
 ```
-
-Al finalizar, el script creará automáticamente una **Cuenta de Administrador** para que puedas iniciar sesión sin tener que registrarte:
+*Esto creará un usuario administrador:*
 - **Email:** `admin@cvsmartai.com`
 - **Contraseña:** `admin123`
 
-### Paso 5: Acceder a la Aplicación
-
-¡Todo está listo! Puedes acceder a los servicios desde tu navegador:
-
-- **Plataforma Web (Frontend):** [http://localhost:5173](http://localhost:5173)
+### 5. Acceso
+- **Plataforma Web:** [http://localhost:5173](http://localhost:5173)
 - **API (Backend):** [http://localhost:5000](http://localhost:5000)
-- **Base de Datos:** Puerto `5432` en tu `localhost`.
 
 ---
 
-## 🛑 Comandos Útiles
+## ✅ Comprobación del Sistema (Testing)
+Puedes ejecutar la suite de pruebas unitarias para validar los endpoints:
+```bash
+cd backend
+pytest tests/
+```
 
-- **Detener la aplicación:**
-  ```bash
-  docker-compose down
-  ```
-  *(Nota: Los datos de la base de datos se conservan en el volumen de Docker).*
 
-- **Borrar todo (incluyendo la base de datos):**
-  ```bash
-  docker-compose down -v
-  ```
-
-- **Ver los logs en tiempo real:**
-  ```bash
-  docker-compose logs -f
-  ```
