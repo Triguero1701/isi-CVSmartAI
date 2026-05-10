@@ -26,7 +26,7 @@ Para el **Hito 3**, el despliegue se ha automatizado íntegramente mediante **Do
 2.  **Orquestación**: Docker Compose gestiona la red interna, el volumen de persistencia para PostgreSQL y el orden de encendido de los servicios.
 3.  **Comando Único**: Todo el ecosistema se levanta con un solo comando:
     ```bash
-    docker-compose up --build -d
+    docker compose up --build -d
     ```
 
 ### 📈 Monitorización de Salud
@@ -38,10 +38,19 @@ Una vez desplegado, el sistema cuenta con un endpoint de salud integrado:
 
 ## 🛠️ Guía de Despliegue Paso a Paso
 
-### 1. Requisitos Previos
+### Requisitos Previos
 Asegúrate de tener instalado:
 - [Git](https://git-scm.com/)
 - [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Paso 1: Clonar el Repositorio
+
+Abre tu terminal y clona el proyecto en tu máquina local:
+
+```bash
+git clone https://github.com/Triguero1701/isi-CVSmartAI.git
+cd isi-CVSmartAI
+```
 
 ### 2. Configuración de Credenciales
 El backend requiere credenciales para conectarse a Google Cloud y Gemini.
@@ -110,16 +119,4 @@ Cree un archivo `.env` en `backend/` con estos valores:
 | **`SCRAPERAPI_KEY`** | Clave obtenida en el paso D (Opcional). |
 | **`JWT_SECRET_KEY`** | Frase aleatoria para las sesiones. |
 
----
 
-## 🎨 Estética Premium y UX (Hito 3)
-- **Glassmorphism**: Interfaces translúcidas y modernas.
-- **Micro-interacciones**: Transiciones fluidas y fondo animado sutil.
-- **Visualización**: Gráficas interactivas de evolución.
-
-## ✅ Funcionalidad Total y Robustez
-- **Análisis Real-Time**: Feedback progresivo mediante SSE.
-- **Validación**: Filtros de seguridad para PDFs y límites de 10MB.
-- **IA Fallback**: Sistema de contingencia ante errores de formato.
-
----
