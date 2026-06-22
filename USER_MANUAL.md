@@ -40,15 +40,12 @@ El editor de CVSmartAI es la herramienta clave para dar forma legible y óptima 
 * **Columna de Formulario (Izquierda):** Contiene campos interactivos organizados en pestañas para modificar de manera dinámica tus datos de contacto, resumen profesional, experiencias de trabajo (viñetas), educación y lista de tecnologías.
 * **Visor de Plantilla Harvard (Derecha):** Renderiza en tiempo real tu CV en el formato académico clásico de Harvard (diseño centrado, tipografía serif Garamond, separaciones finas, sin tablas ni elementos gráficos que bloqueen los ATS).
 
-### 4.2 Control de Página Única A4 (Cero Hojas en Blanco)
-El visor del documento cuenta con límites verticales estrictos y ocultación de desbordamiento (`overflow: hidden`). Esto garantiza que el CV final ocupe **exactamente una página física A4**, evitando el problema común de generar páginas adicionales en blanco que penalicen tu criba.
-
-### 4.3 Traducción Inteligente con IA
+### 4.2 Traducción Inteligente con IA
 1. Haz clic en el botón **"Traducir con IA"** en la barra superior del editor.
 2. Se abrirá un modal con las banderas de **Castellano, Inglés, Alemán y Francés**.
 3. Haz clic en el idioma deseado. La IA de Gemini traducirá de forma contextual tu perfil (resumen profesional, viñetas de experiencia y títulos académicos) sin corromper la estructura JSON ni alterar nombres propios de tecnologías.
 
-### 4.4 Descarga Directa a PDF
+### 4.3 Descarga Directa a PDF
 Una vez que el currículum esté listo y tu puntuación de afinidad sea óptima, haz clic en el botón **"PDF"**. La librería del navegador generará un documento PDF nítido y vectorizado listo para enviar a los reclutadores.
 
 ---
