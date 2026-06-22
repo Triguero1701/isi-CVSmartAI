@@ -12,6 +12,7 @@
   line-height: 1.4 !important;
   box-sizing: border-box;
   text-align: left;
+  position: relative;
 }
 
 .cv-header {
@@ -192,3 +193,5 @@
   font-weight: normal !important;
   box-shadow: none !important;
 }
+
+
