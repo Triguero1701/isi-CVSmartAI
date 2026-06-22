@@ -1,142 +1,194 @@
+/* CVTemplateModern.css - Clean Harvard ATS Format (Non-Brutalist for Document Preview) */
 .cv-template-modern {
-    width: 794px; /* A4 width at 96 PPI */
-    height: 1123px; /* A4 height at 96 PPI */
-    background: #ffffff;
-    color: #333333;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Prevent breaking page */
+  background: #FFFFFF !important;
+  width: 210mm;
+  height: 296mm !important;
+  max-height: 296mm !important;
+  overflow: hidden !important;
+  padding: 15mm 20mm;
+  font-family: "Garamond", "Times New Roman", Georgia, serif !important;
+  color: #111111 !important;
+  font-size: 10.5pt !important;
+  line-height: 1.4 !important;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .cv-header {
-    background-color: #2c3e50;
-    color: #ffffff;
-    padding: 40px 50px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .cv-name {
-    font-size: 32px;
-    font-weight: 700;
-    margin: 0 0 10px 0;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+  font-family: "Garamond", "Times New Roman", Georgia, serif !important;
+  font-size: 22pt !important;
+  font-weight: bold !important;
+  color: #000000 !important;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .cv-title {
-    font-size: 18px;
-    font-weight: 300;
-    color: #3498db;
-    margin: 0 0 15px 0;
+  font-size: 11.5pt !important;
+  font-family: "Garamond", "Times New Roman", Georgia, serif !important;
+  font-weight: normal !important;
+  font-style: italic !important;
+  color: #444444 !important;
+  margin: 0 0 10px 0;
+  text-transform: none !important;
 }
 
 .cv-contact {
-    display: flex;
-    gap: 20px;
-    font-size: 13px;
-    color: #bdc3c7;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 9.5pt !important;
+  color: #333333 !important;
+  border-bottom: 1.5px solid #000000 !important;
+  padding-bottom: 10px;
+  font-weight: normal !important;
+}
+
+.cv-contact span {
+  display: inline-block;
+}
+
+.cv-contact span::after {
+  content: "  •";
+  margin-left: 8px;
+  color: #666666;
+}
+
+.cv-contact span:last-child::after {
+  content: "";
+  margin-left: 0;
 }
 
 .cv-body {
-    display: flex;
-    flex: 1;
-    padding: 0;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  margin-top: 16px;
 }
 
 .cv-main {
-    flex: 2;
-    padding: 40px 50px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
 }
 
 .cv-sidebar {
-    flex: 1;
-    background-color: #ecf0f1;
-    padding: 40px 30px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
 }
 
 .cv-section {
-    margin-bottom: 30px;
+  display: flex !important;
+  flex-direction: column !important;
+  margin-bottom: 4px;
 }
 
 .section-title {
-    font-size: 16px;
-    text-transform: uppercase;
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 5px;
-    margin-top: 0;
-    margin-bottom: 15px;
-    letter-spacing: 1px;
+  font-family: "Garamond", "Times New Roman", Georgia, serif !important;
+  font-size: 11pt !important;
+  font-weight: bold !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #000000 !important;
+  border-bottom: 1px solid #000000 !important;
+  padding-bottom: 2px;
+  margin-top: 0;
+  margin-bottom: 8px;
 }
 
 .cv-summary {
-    font-size: 13px;
-    line-height: 1.6;
-    color: #555555;
-    margin: 0;
+  font-size: 10pt !important;
+  line-height: 1.4 !important;
+  color: #111111 !important;
+  margin: 0;
+}
+
+.experience-list, .education-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
 }
 
 .experience-item, .education-item {
-    margin-bottom: 20px;
-}
-
-.experience-item:last-child, .education-item:last-child {
-    margin-bottom: 0;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
 }
 
 .exp-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
 }
 
 .exp-role {
-    font-size: 15px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
+  font-size: 10.5pt !important;
+  font-weight: bold !important;
+  color: #000000 !important;
+  margin: 0;
+  text-transform: none !important;
 }
 
 .exp-duration, .edu-year {
-    font-size: 12px;
-    color: #7f8c8d;
-    font-weight: 500;
+  font-size: 9.5pt !important;
+  color: #111111 !important;
+  font-weight: normal !important;
+  font-style: italic !important;
 }
 
 .exp-company, .edu-inst {
-    font-size: 13px;
-    font-weight: 500;
-    color: #3498db;
-    margin-bottom: 8px;
+  font-size: 10.5pt !important;
+  font-weight: bold !important;
+  color: #000000 !important;
+  text-transform: none !important;
+  text-decoration: none !important;
 }
 
 .exp-desc {
-    font-size: 13px;
-    line-height: 1.5;
-    color: #555555;
-    margin: 0;
+  font-size: 9.5pt !important;
+  line-height: 1.4 !important;
+  color: #222222 !important;
+  margin: 2px 0 0 0;
 }
 
 .edu-degree {
-    font-size: 14px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0 0 5px 0;
+  font-size: 10.5pt !important;
+  font-weight: bold !important;
+  color: #000000 !important;
+  margin: 0;
+  text-transform: none !important;
 }
 
 .skills-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  display: block !important;
+  line-height: 1.4 !important;
+}
+
+.skills-list-row {
+  font-size: 10pt !important;
+  margin-bottom: 4px;
+}
+
+.skills-list-row strong {
+  font-weight: bold !important;
 }
 
 .skill-tag {
-    background-color: #bdc3c7;
-    color: #2c3e50;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
+  display: inline !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  font-size: 10pt !important;
+  color: #111111 !important;
+  font-weight: normal !important;
+  box-shadow: none !important;
 }

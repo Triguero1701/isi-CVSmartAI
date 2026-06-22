@@ -1,0 +1,521 @@
+.editorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #FFFFFF;
+  border-bottom: 4px solid #000000;
+  z-index: 10;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.backBtn {
+  background: #FFFFFF;
+  border: 3px solid #000000;
+  color: #000000;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backBtn:hover {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.editorHeader h1 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 900;
+  margin: 0;
+  color: #000000;
+  text-transform: uppercase;
+}
+
+.subtext {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: #000000;
+  margin-top: 2px;
+  font-weight: 700;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scoreBadge {
+  background: #99CCFF;
+  border: 2px solid #000000;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-weight: 900;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.creditText {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #000000;
+  text-transform: uppercase;
+  margin-right: 12px;
+}
+
+.counterBadge {
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.langBtn, .translateBtn {
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+}
+
+.translateBtn {
+  background: #99CCFF;
+}
+
+.langBtn:hover, .translateBtn:hover {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.splitContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 84px);
+}
+
+@media (max-width: 1024px) {
+  .splitContainer {
+    grid-template-columns: 1fr;
+  }
+  .rightPanel {
+    display: none;
+  }
+}
+
+.leftPanel {
+  display: flex;
+  flex-direction: column;
+  border-right: 4px solid #000000;
+  background: var(--bg-page);
+  overflow-y: auto;
+}
+
+.formNav {
+  display: flex;
+  border-bottom: 3px solid #000000;
+  background: #FFFFFF;
+}
+
+.formNav button {
+  flex: 1;
+  padding: 14px 8px;
+  background: transparent;
+  border: none;
+  border-right: 3px solid #000000;
+  color: #000000;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.formNav button:last-child {
+  border-right: none;
+}
+
+.formNav button:hover {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.formNav button.activeTab {
+  color: #000000;
+  background: #99CCFF;
+}
+
+.formContent {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formContent h3 {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 900;
+  color: #000000;
+  text-transform: uppercase;
+  border-bottom: 3px solid #000000;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.importBanner {
+  background: #FFFFFF;
+  border: 3px solid #000000;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 4px 4px 0px #000000;
+}
+
+.importBannerText strong {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.importBannerText p {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin: 4px 0 0 0;
+  font-weight: 700;
+}
+
+.importActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fileInputLabel {
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.fileInputLabel:hover {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.importProgress {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: bold;
+  color: #000000;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label, .itemCard label {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #000000;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #000000;
+  cursor: pointer;
+}
+
+.itemCard {
+  background: #FFFFFF;
+  border: 3px solid #000000;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 4px 4px 0px #000000;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #000000;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.cardHeader h4 {
+  color: #000000;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.deleteBtn {
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  color: #FF0000;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteBtn:hover {
+  background: #FF0000;
+  color: #FFFFFF;
+}
+
+.bulletRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.bulletDot {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.bulletInput {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #000000;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  resize: vertical;
+}
+
+.addLink {
+  background: none;
+  border: none;
+  color: #000000;
+  text-decoration: underline;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 4px;
+  display: inline-block;
+  text-align: left;
+}
+
+.skillCategory {
+  background: #FFFFFF;
+  border: 3px solid #000000;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+.skillCategory label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.skillTag {
+  background: #FFFFFF;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tagRemoveBtn {
+  background: transparent;
+  border: none;
+  color: #FF0000;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.tagInput {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #000000;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.rightPanel {
+  background: #CCCCCC;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 24px;
+}
+
+.previewContainer {
+  transform-origin: top center;
+  border: 4px solid #000000;
+  box-shadow: 8px 8px 0px #000000;
+}
+
+.previewPaper {
+  background: #FFFFFF;
+  color: #000000;
+}
+
+/* Modales */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #FFFFFF;
+  border: 4px solid #000000;
+  box-shadow: 8px 8px 0px #000000;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #000000;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  font-size: 20px;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+  color: #FF0000;
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.markdownText {
+  width: 100%;
+  height: 350px;
+  padding: 16px;
+  border: 3px solid #000000;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: #F4F4F4;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  resize: none;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

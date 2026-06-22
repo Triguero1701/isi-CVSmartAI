@@ -3,6 +3,7 @@ import jwt
 import json
 import os
 import requests
+import hashlib
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from functools import wraps
@@ -11,7 +12,7 @@ import psycopg2.extras
 from psycopg2.extras import Json
 from . import get_db
 from .parser import extract_text_from_pdf
-from .llm_engine import analyze_cv_with_gemini, extract_job_offer_data, optimize_cv_json
+from .llm_engine import analyze_cv_with_gemini, extract_job_offer_data, optimize_cv_json, translate_cv_with_gemini
 
 api_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
@@ -58,15 +59,6 @@ def analyze_cv():
         if not cv_file.filename.lower().endswith('.pdf'):
             yield f"data: {json.dumps({'status': 'error', 'error': 'El archivo debe ser un PDF válido.'})}\n\n"
             return
-            
-        # Limit to 10MB to avoid memory issues
-        cv_file.seek(0, os.SEEK_END)
-        file_size = cv_file.tell()
-        cv_file.seek(0)
-        if file_size > 10 * 1024 * 1024:
-            yield f"data: {json.dumps({'status': 'error', 'error': 'El archivo es demasiado grande (máximo 10MB).'})}\n\n"
-            return
-            
         yield f"data: {json.dumps({'status': 'progress', 'message': 'Inicializando análisis...'})}\n\n"
         
         cv_version_id = None
@@ -103,7 +95,7 @@ def analyze_cv():
                 if db:
                     db.rollback()
 
-        yield f"data: {json.dumps({'status': 'progress', 'message': 'Extrayendo texto del PDF...'})}\n\n"
+        yield f"data: {json.dumps({'status': 'progress', 'message': 'Extrayendo texto del PDF (GCloud Document AI)...'})}\n\n"
         
         # Call Google Document AI OCR
         cv_bytes = cv_file.read()
@@ -113,7 +105,7 @@ def analyze_cv():
             yield f"data: {json.dumps({'status': 'error', 'error': f'Fallo en analísis OCR (GCloud): {str(e)}'})}\n\n"
             return
             
-        yield f"data: {json.dumps({'status': 'progress', 'message': 'Enviando a Gemini...'})}\n\n"
+        yield f"data: {json.dumps({'status': 'progress', 'message': 'Realizando análisis semántico (Gemini)...'})}\n\n"
 
         # Call Gemini LLM logic
         try:
@@ -123,21 +115,28 @@ def analyze_cv():
             yield f"data: {json.dumps({'status': 'error', 'error': f'Fallo en analísis LLM (Gemini): {str(e)}'})}\n\n"
             return
             
-        yield f"data: {json.dumps({'status': 'progress', 'message': 'Calculando Score...'})}\n\n"
+        yield f"data: {json.dumps({'status': 'progress', 'message': 'Guardando resultados en base de datos...'})}\n\n"
 
         processing_time_ms = int((time.time() - start_time) * 1000)
         
         # Step 2: Update records after processing
         if cv_version_id is not None and db is not None and cursor is not None:
             try:
+                # Save structured_data JSON in cv_versions
                 cursor.execute(
-                    "UPDATE cv_versions SET extracted_text = %s, compatibility_score = %s WHERE id = %s",
-                    (extracted_text[:5000], compatibility_score, cv_version_id)
+                    "UPDATE cv_versions SET extracted_text = %s, compatibility_score = %s, structured_data = %s WHERE id = %s",
+                    (extracted_text[:5000], compatibility_score, Json(gemini_analysis.get('extracted_data', {})), cv_version_id)
                 )
                 
+                feedback_data = {
+                    "matched_skills": gemini_analysis.get("matched_skills", []),
+                    "missing_skills": gemini_analysis.get("missing_skills", []),
+                    "category_breakdown": gemini_analysis.get("category_breakdown", {}),
+                    "recommendations": gemini_analysis.get("recommendations", [])
+                }
                 cursor.execute(
                     "INSERT INTO feedback_logs (cv_version_id, suggested_corrections) VALUES (%s, %s)",
-                    (cv_version_id, Json(gemini_analysis.get('analysis', {})))
+                    (cv_version_id, Json(feedback_data))
                 )
                 
                 cursor.execute(
@@ -160,7 +159,11 @@ def analyze_cv():
             "cv_version_id": cv_version_id,
             "extracted_text_preview": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text,
             "compatibility_score": compatibility_score,
-            "analysis": gemini_analysis.get('analysis', {}),
+            "matched_skills": gemini_analysis.get("matched_skills", []),
+            "missing_skills": gemini_analysis.get("missing_skills", []),
+            "category_breakdown": gemini_analysis.get("category_breakdown", {}),
+            "recommendations": gemini_analysis.get("recommendations", []),
+            "extracted_data": gemini_analysis.get("extracted_data", {}),
             "processing_time_ms": processing_time_ms
         }
         yield f"data: {json.dumps(result)}\n\n"
@@ -207,9 +210,36 @@ def improve_cv():
 @token_required
 def extract_job_offer():
     data = request.json
-    if not data or 'url' not in data:
-        return jsonify({"status": "error", "message": "Falta la URL de la oferta."}), 400
+    if not data or ('url' not in data and 'text' not in data):
+        return jsonify({"status": "error", "message": "Falta la URL o el texto de la oferta."}), 400
         
+    # If text is provided directly, bypass scraping
+    if 'text' in data:
+        text = data['text']
+        try:
+            extracted_data = extract_job_offer_data(text[:15000])
+            db = get_db()
+            cursor = get_cursor(db)
+            cursor.execute(
+                "INSERT INTO job_offers (title, description, keywords) VALUES (%s, %s, %s) RETURNING id",
+                (
+                    extracted_data.get('job_title', 'Oferta Extraída'), 
+                    extracted_data.get('description', text[:500]),
+                    Json(extracted_data.get('keywords_ats', []))
+                )
+            )
+            job_offer_id = cursor.fetchone()['id']
+            db.commit()
+            cursor.close()
+            
+            return jsonify({
+                "status": "success",
+                "job_offer_id": job_offer_id,
+                "data": extracted_data
+            })
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
     url = data['url']
     try:
         from urllib.parse import urlencode
@@ -254,11 +284,13 @@ def extract_job_offer():
         # Insert into database
         db = get_db()
         cursor = get_cursor(db)
-        # Note: If the schema doesn't have company/keywords, we just save title/description for now, 
-        # or we update the schema. I'll save title and description and return the rest.
         cursor.execute(
-            "INSERT INTO job_offers (title, description) VALUES (%s, %s) RETURNING id",
-            (extracted_data.get('title', 'Oferta Extraída'), extracted_data.get('description', text[:500]))
+            "INSERT INTO job_offers (title, description, keywords) VALUES (%s, %s, %s) RETURNING id",
+            (
+                extracted_data.get('job_title', 'Oferta Extraída'), 
+                extracted_data.get('description', text[:500]),
+                Json(extracted_data.get('keywords_ats', []))
+            )
         )
         job_offer_id = cursor.fetchone()['id']
         db.commit()
@@ -338,9 +370,10 @@ def register_user():
         
     try:
         cursor = get_cursor(db)
+        password_hash = hashlib.sha256(data['password'].encode('utf-8')).hexdigest()
         cursor.execute(
             "INSERT INTO users (name, email, password_hash) VALUES (%s, %s, %s) RETURNING id",
-            (data['name'], data['email'], data['password'])
+            (data['name'], data['email'], password_hash)
         )
         user_id = cursor.fetchone()['id']
         db.commit()
@@ -381,7 +414,9 @@ def login_user():
         user = cursor.fetchone()
         cursor.close()
         
-        if not user or user['password_hash'] != data['password']:
+        password_hash = hashlib.sha256(data['password'].encode('utf-8')).hexdigest()
+        print(f"DEBUG LOGIN - Email: {data['email']}, Found User: {user}, Expected Hash: {password_hash}", flush=True)
+        if not user or user['password_hash'] != password_hash:
             return jsonify({"status": "error", "message": "Credenciales inválidas."}), 401
             
         token = jwt.encode({
@@ -594,6 +629,69 @@ def delete_log(log_id):
     db.commit()
     cursor.close()
     return jsonify({'message': 'Log deleted'})
+
+# ----------------- CV VERSIONS FOR EDITOR -----------------
+@api_bp.route('/cv-versions/<int:version_id>', methods=['GET'])
+@token_required
+def get_cv_version(version_id):
+    db = get_db()
+    cursor = get_cursor(db)
+    try:
+        cursor.execute("SELECT * FROM cv_versions WHERE id = %s", (version_id,))
+        version = cursor.fetchone()
+        if not version:
+            return jsonify({'status': 'error', 'message': 'Versión de CV no encontrada'}), 404
+            
+        # Also fetch feedback logs if available
+        cursor.execute("SELECT suggested_corrections FROM feedback_logs WHERE cv_version_id = %s LIMIT 1", (version_id,))
+        feedback = cursor.fetchone()
+        
+        version_dict = dict(version)
+        version_dict['feedback'] = dict(feedback)['suggested_corrections'] if feedback else None
+        return jsonify({'status': 'success', 'data': version_dict})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        cursor.close()
+
+@api_bp.route('/cv-versions/<int:version_id>', methods=['PUT'])
+@token_required
+def update_cv_version(version_id):
+    data = request.json
+    if not data or 'structured_data' not in data:
+        return jsonify({'status': 'error', 'message': 'Falta structured_data'}), 400
+        
+    db = get_db()
+    cursor = get_cursor(db)
+    try:
+        cursor.execute(
+            "UPDATE cv_versions SET structured_data = %s WHERE id = %s",
+            (Json(data['structured_data']), version_id)
+        )
+        db.commit()
+        return jsonify({'status': 'success', 'message': 'CV actualizado correctamente'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@api_bp.route('/translate-cv', methods=['POST'])
+@token_required
+def translate_cv():
+    data = request.json
+    if not data or 'cv_data' not in data or 'target_language' not in data:
+        return jsonify({'status': 'error', 'message': 'Faltan campos requeridos (cv_data, target_language)'}), 400
+        
+    cv_data = data.get('cv_data')
+    target_language = data.get('target_language')
+    
+    try:
+        translated_json = translate_cv_with_gemini(cv_data, target_language)
+        return jsonify({
+            'status': 'success',
+            'translated_data': translated_json
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @api_bp.route('/health', methods=['GET'])
 def health_check():

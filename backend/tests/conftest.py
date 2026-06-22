@@ -62,6 +62,34 @@ def mock_gemini_llm():
         }
         yield mock_llm
 
+@pytest.fixture(autouse=True)
+def mock_extract_job_offer():
+    """Mocks extract_job_offer_data globally for all tests."""
+    with patch('app.routes.extract_job_offer_data') as mock:
+        mock.return_value = {
+            "job_title": "Desarrollador Python",
+            "company": "Empresa de Prueba",
+            "seniority": "mid",
+            "required_skills": ["Python", "SQL"],
+            "nice_to_have_skills": ["Docker"],
+            "keywords_ats": ["Flask"],
+            "description": "Buscamos un desarrollador Python."
+        }
+        yield mock
+
+@pytest.fixture(autouse=True)
+def mock_optimize_cv():
+    """Mocks optimize_cv_json globally for all tests."""
+    with patch('app.routes.optimize_cv_json') as mock:
+        mock.return_value = {
+            "personal_info": {"name": "Juan Lopez", "title": "Developer"},
+            "summary": "Resumen optimizado",
+            "experience": [],
+            "education": [],
+            "skills": ["Python", "SQL", "Docker"]
+        }
+        yield mock
+
 @pytest.fixture
 def app():
     os.environ['DATABASE_URL'] = TEST_DB_URL
@@ -101,3 +129,16 @@ def auth_headers(client):
     login_res = client.post('/api/v1/users/login', data=json.dumps({"email": "testauth@test.com", "password": "secure_pass"}), content_type='application/json')
     token = login_res.json['token']
     return {'Authorization': f'Bearer {token}'}
+
+@pytest.fixture(autouse=True)
+def mock_translate_cv():
+    """Mocks translate_cv_with_gemini globally for all tests."""
+    with patch('app.routes.translate_cv_with_gemini') as mock:
+        mock.return_value = {
+            "personalInfo": {"fullName": "Translated Name", "title": "Translated Title"},
+            "summary": "Translated summary",
+            "experience": [],
+            "education": [],
+            "skills": []
+        }
+        yield mock

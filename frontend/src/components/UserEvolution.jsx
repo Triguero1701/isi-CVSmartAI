@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../utils/api';
 import styles from './UserEvolution.module.css';
 
@@ -79,7 +79,7 @@ export default function UserEvolution() {
       </div>
 
       {selectedUserId && (
-        <div className={`card glass ${styles.chartCard}`}>
+        <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <h3 className={styles.chartTitle}>Evolución del Score de Compatibilidad</h3>
             {latestScore !== null && (
@@ -93,23 +93,45 @@ export default function UserEvolution() {
             <div className={styles.noData}>Cargando datos...</div>
           ) : evolutionData.length > 0 ? (
             <ResponsiveContainer width="100%" height="80%">
-              <AreaChart data={evolutionData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorEvolutionScore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3fb950" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3fb950" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" stroke="#8b949e" />
-                <YAxis stroke="#8b949e" domain={[0, 100]} />
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', color: '#c9d1d9' }}
-                  itemStyle={{ color: '#3fb950' }}
-                  labelStyle={{ color: '#e6edf3', fontWeight: 'bold' }}
+              <LineChart data={evolutionData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#000000" 
+                  fontSize={12} 
+                  tickLine={true} 
+                  axisLine={{ stroke: '#000000', strokeWidth: 3 }} 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}
                 />
-                <Area type="monotone" dataKey="score" stroke="#3fb950" fillOpacity={1} fill="url(#colorEvolutionScore)" />
-              </AreaChart>
+                <YAxis 
+                  stroke="#000000" 
+                  fontSize={12} 
+                  tickLine={true} 
+                  axisLine={{ stroke: '#000000', strokeWidth: 3 }} 
+                  domain={[0, 100]} 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}
+                />
+                <CartesianGrid strokeDasharray="4 4" stroke="#000000" strokeWidth={1.5} />
+                <Tooltip 
+                  contentStyle={{ 
+                    background: '#FFFFFF', 
+                    border: '3px solid #000000', 
+                    fontSize: 13, 
+                    boxShadow: 'none',
+                    color: '#000000',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 'bold'
+                  }}
+                  itemStyle={{ color: '#000000' }}
+                />
+                <Line 
+                  type="linear" 
+                  dataKey="score" 
+                  stroke="#000000" 
+                  strokeWidth={4}
+                  dot={{ r: 6, fill: '#00FF00', stroke: '#000000', strokeWidth: 3 }} 
+                  activeDot={{ r: 8, fill: '#00FF00', stroke: '#000000', strokeWidth: 3 }}
+                />
+              </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className={styles.noData}>El usuario no tiene historial de CVs evaluados.</div>

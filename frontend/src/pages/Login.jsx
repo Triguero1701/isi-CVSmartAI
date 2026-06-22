@@ -17,7 +17,7 @@ export default function Login() {
       const endpoint = isLogin ? '/api/v1/users/login' : '/api/v1/users/register';
       const payload = isLogin ? { email, password } : { name, email, password };
       
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`http://localhost:5001${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -38,37 +38,23 @@ export default function Login() {
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginShell}>
-        <div className={`${styles.loginBrand} glass`}>
+        <div className={styles.loginBrand}>
           <div className={styles.kicker}>SaaS Platform</div>
           <h1>
             CVSmartAI<br />
-            <span className="gradient-text">Agentic Screening</span>
+            <span style={{ color: '#000000' }}>Agentic Screening</span>
           </h1>
           <p className={styles.brandCopy}>
             El sistema de evaluación y filtrado de currículums impulsado por Google Document AI y Gemini. Centraliza el feedback evolutivo de los candidatos.
           </p>
-          <div className={styles.brandStats}>
-            <article>
-              <span>98%</span>
-              <p>Precisión OCR</p>
-            </article>
-            <article>
-              <span>&lt; 2s</span>
-              <p>Análisis Semántico</p>
-            </article>
-            <article>
-              <span>100+</span>
-              <p>Skills Detectables</p>
-            </article>
-          </div>
         </div>
 
-        <div className={`${styles.loginCard} glass`}>
+        <div className={styles.loginCard}>
           <header>
             <h2>{isLogin ? 'Bienvenido' : 'Crear Cuenta'}</h2>
             <p>{isLogin ? 'Inicia sesión para analizar candidatos' : 'Regístrate para comenzar'}</p>
           </header>
-          {error && <div className={styles.errorMessage} style={{color: '#ff6b6b', background: 'rgba(255, 0, 0, 0.1)', padding: '10px', borderRadius: '5px', marginBottom: '15px'}}>{error}</div>}
+          {error && <div className={styles.errorMessage}>{error}</div>}
           <form className={styles.loginForm} onSubmit={handleAuth}>
             {!isLogin && (
               <>
@@ -109,7 +95,7 @@ export default function Login() {
               <button 
                 type="button" 
                 onClick={() => { setIsLogin(!isLogin); setError(null); }}
-                style={{ background: 'none', border: 'none', color: '#58a6ff', cursor: 'pointer', textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
               </button>

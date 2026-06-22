@@ -338,7 +338,7 @@ class TestAnalyze:
         assert b'"status": "success"' in res.data
         assert b'"compatibility_score"' in res.data
         assert b'"matched_skills"' in res.data
-        assert b'"missing_keywords"' in res.data
+        assert b'"missing_skills"' in res.data
         assert b'"processing_time_ms"' in res.data
 
     def test_analyze_missing_cv_file(self, client, auth_headers):
@@ -420,3 +420,286 @@ class TestHistory:
         assert 'compatibility_score' in res.json[0]
         assert 'version_number' in res.json[0]
         assert 'job_offer_title' in res.json[0]
+
+
+# =============================================================================
+# JOB OFFERS - /api/v1/job-offers/extract
+# =============================================================================
+
+class TestJobOffers:
+    """Tests para el endpoint de extracción de ofertas de trabajo"""
+
+    def test_extract_job_offer_text_success(self, client, auth_headers):
+        """Extracción de oferta de empleo enviando texto plano"""
+        payload = {
+            "text": "Buscamos un desarrollador Python senior con experiencia en SQL."
+        }
+        res = client.post('/api/v1/job-offers/extract',
+                          data=json.dumps(payload),
+                          headers=auth_headers,
+                          content_type='application/json')
+        assert res.status_code == 200
+        assert res.json['status'] == 'success'
+        assert 'job_offer_id' in res.json
+        assert res.json['data']['job_title'] == 'Desarrollador Python'
+        assert res.json['data']['company'] == 'Empresa de Prueba'
+
+    def test_extract_job_offer_missing_payload(self, client, auth_headers):
+        """Extracción sin URL ni texto -> 400"""
+        payload = {}
+        res = client.post('/api/v1/job-offers/extract',
+                          data=json.dumps(payload),
+                          headers=auth_headers,
+                          content_type='application/json')
+        assert res.status_code == 400
+        assert res.json['status'] == 'error'
+
+    def test_extract_job_offer_unauthorized(self, client):
+        """Llamada sin token -> 401"""
+        payload = {"text": "dummy"}
+        res = client.post('/api/v1/job-offers/extract',
+                          data=json.dumps(payload),
+                          content_type='application/json')
+        assert res.status_code == 401
+
+
+# =============================================================================
+# IMPROVE CV - /api/v1/improve-cv
+# =============================================================================
+
+class TestImproveCV:
+    """Tests para el endpoint de optimización de CV con IA"""
+
+    def test_improve_cv_success(self, client, auth_headers):
+        """Optimización de CV exitosa"""
+        # 1. Crear usuario y realizar análisis preliminar para generar un cv_version_id
+        analysis_data = {
+            'job_offer_text': 'Desarrollador React',
+            'cv_file': (BytesIO(b"React Developer"), 'cv.pdf')
+        }
+        
+        create = client.post('/api/v1/users/register',
+                             data=json.dumps({"name": "CV User", "email": "cvuser@test.com", "password": "p"}),
+                             content_type='application/json')
+        user_id = create.json['user_id']
+        token = create.json['token']
+        my_headers = {'Authorization': f'Bearer {token}'}
+
+        res_analyze = client.post('/api/v1/analyze', data=analysis_data, headers=my_headers, content_type='multipart/form-data')
+        _ = res_analyze.data # Consumir
+
+        history_res = client.get(f'/api/v1/users/{user_id}/history', headers=my_headers)
+        cv_version_id = history_res.json[0]['version_id']
+
+        # 2. Llamar a mejorar CV
+        improve_payload = {
+            "cv_version_id": cv_version_id,
+            "skills_to_add": ["Docker", "Kubernetes"]
+        }
+        res_improve = client.post('/api/v1/improve-cv',
+                                  data=json.dumps(improve_payload),
+                                  headers=my_headers,
+                                  content_type='application/json')
+        assert res_improve.status_code == 200
+        assert res_improve.json['status'] == 'success'
+        assert 'optimized_json' in res_improve.json
+        assert res_improve.json['optimized_json']['personal_info']['name'] == 'Juan Lopez'
+
+    def test_improve_cv_not_found(self, client, auth_headers):
+        """Intento de mejorar un CV inexistente -> 404"""
+        payload = {
+            "cv_version_id": 9999,
+            "skills_to_add": ["Docker"]
+        }
+        res = client.post('/api/v1/improve-cv',
+                          data=json.dumps(payload),
+                          headers=auth_headers,
+                          content_type='application/json')
+        assert res.status_code == 404
+        assert res.json['status'] == 'error'
+
+    def test_improve_cv_missing_id(self, client, auth_headers):
+        """Falta cv_version_id en el payload -> 400"""
+        payload = {"skills_to_add": []}
+        res = client.post('/api/v1/improve-cv',
+                          data=json.dumps(payload),
+                          headers=auth_headers,
+                          content_type='application/json')
+        assert res.status_code == 400
+
+
+# =============================================================================
+# CV VERSIONS - /api/v1/cv-versions/<id>
+# =============================================================================
+
+class TestCvVersions:
+    """Tests para la obtención y actualización de versiones de CV desde el editor"""
+
+    def test_get_and_update_cv_version(self, client):
+        """GET y PUT de versiones de CV en base de datos"""
+        # 1. Registrar usuario
+        create = client.post('/api/v1/users/register',
+                             data=json.dumps({"name": "Editor User", "email": "edituser@test.com", "password": "p"}),
+                             content_type='application/json')
+        user_id = create.json['user_id']
+        token = create.json['token']
+        my_headers = {'Authorization': f'Bearer {token}'}
+
+        # 2. Subir un CV para generar una versión
+        analysis_data = {
+            'job_offer_text': 'Requisitos',
+            'cv_file': (BytesIO(b"CV Text"), 'cv.pdf')
+        }
+        res_analyze = client.post('/api/v1/analyze', data=analysis_data, headers=my_headers, content_type='multipart/form-data')
+        _ = res_analyze.data
+
+        # 3. Consultar la versión creada
+        history_res = client.get(f'/api/v1/users/{user_id}/history', headers=my_headers)
+        cv_version_id = history_res.json[0]['version_id']
+
+        res_get = client.get(f'/api/v1/cv-versions/{cv_version_id}', headers=my_headers)
+        assert res_get.status_code == 200
+        assert res_get.json['status'] == 'success'
+        assert 'data' in res_get.json
+        assert 'structured_data' in res_get.json['data']
+
+        # 4. Actualizar los datos estructurados (PUT)
+        new_structured_data = {
+            "personal_info": {"name": "Juan Lopez Perez", "title": "Lead Dev"},
+            "summary": "Resumen actualizado",
+            "skills": ["Python", "Flask", "React"]
+        }
+        res_put = client.put(f'/api/v1/cv-versions/{cv_version_id}',
+                             data=json.dumps({"structured_data": new_structured_data}),
+                             headers=my_headers,
+                             content_type='application/json')
+        assert res_put.status_code == 200
+        assert res_put.json['status'] == 'success'
+
+        # 5. Volver a consultar y verificar que los cambios persistan
+        res_get_updated = client.get(f'/api/v1/cv-versions/{cv_version_id}', headers=my_headers)
+        assert res_get_updated.json['data']['structured_data']['personal_info']['name'] == 'Juan Lopez Perez'
+        assert res_get_updated.json['data']['structured_data']['summary'] == 'Resumen actualizado'
+
+    def test_get_cv_version_not_found(self, client, auth_headers):
+        """GET de versión inexistente -> 404"""
+        res = client.get('/api/v1/cv-versions/9999', headers=auth_headers)
+        assert res.status_code == 404
+        assert res.json['status'] == 'error'
+
+    def test_update_cv_version_missing_data(self, client, auth_headers):
+        """PUT de versión sin structured_data -> 400"""
+        res = client.put('/api/v1/cv-versions/9999',
+                         data=json.dumps({}),
+                         headers=auth_headers,
+                         content_type='application/json')
+        assert res.status_code == 400
+
+
+# =============================================================================
+# USER EVOLUTION - /api/v1/users/<id>/evolution
+# =============================================================================
+
+class TestUserEvolution:
+    """Tests para el endpoint de evolución histórica de compatibilidad"""
+
+    def test_get_user_evolution_empty(self, client, auth_headers):
+        """Evolución vacía para un usuario nuevo"""
+        res = client.get('/api/v1/users/999/evolution', headers=auth_headers)
+        assert res.status_code == 200
+        assert res.json == []
+
+    def test_get_user_evolution_after_analysis(self, client):
+        """Evolución muestra los datos del análisis realizado"""
+        # 1. Registrar usuario
+        create = client.post('/api/v1/users/register',
+                             data=json.dumps({"name": "Evolution User", "email": "evol@test.com", "password": "p"}),
+                             content_type='application/json')
+        user_id = create.json['user_id']
+        token = create.json['token']
+        my_headers = {'Authorization': f'Bearer {token}'}
+
+        # 2. Hacer un análisis
+        analysis_data = {
+            'job_offer_text': 'Requisitos de prueba',
+            'cv_file': (BytesIO(b"CV Text"), 'cv.pdf')
+        }
+        res_analyze = client.post('/api/v1/analyze', data=analysis_data, headers=my_headers, content_type='multipart/form-data')
+        _ = res_analyze.data
+
+        # 3. Consultar evolución
+        res = client.get(f'/api/v1/users/{user_id}/evolution', headers=my_headers)
+        assert res.status_code == 200
+        assert len(res.json) > 0
+        assert 'compatibility_score' in res.json[0]
+        assert 'version_id' in res.json[0]
+        assert 'version_number' in res.json[0]
+
+
+# =============================================================================
+# HEALTH - /api/v1/health
+# =============================================================================
+
+class TestHealth:
+    """Tests para el endpoint de health-check del backend"""
+
+    def test_health_check(self, client):
+        """El endpoint health debe estar activo y devolver 200"""
+        res = client.get('/api/v1/health')
+        assert res.status_code == 200
+        assert res.json['status'] == 'healthy'
+        assert 'timestamp' in res.json
+        assert res.json['service'] == 'cvsmartai-backend'
+
+
+# =============================================================================
+# TRANSLATE CV - /api/v1/translate-cv
+# =============================================================================
+
+class TestTranslateCV:
+    """Tests para el endpoint de traducción de CV con Gemini"""
+
+    def test_translate_cv_success(self, client, auth_headers):
+        """Traducción exitosa con datos correctos y autenticación"""
+        payload = {
+            "cv_data": {
+                "personalInfo": {"fullName": "Juan Lopez", "title": "Developer"},
+                "summary": "Resumen profesional",
+                "experience": [],
+                "education": [],
+                "skills": []
+            },
+            "target_language": "en"
+        }
+        res = client.post('/api/v1/translate-cv',
+                          data=json.dumps(payload),
+                          headers=auth_headers,
+                          content_type='application/json')
+        assert res.status_code == 200
+        assert res.json['status'] == 'success'
+        assert 'translated_data' in res.json
+        assert res.json['translated_data']['personalInfo']['fullName'] == "Translated Name"
+
+    def test_translate_cv_missing_data(self, client, auth_headers):
+        """Traducción falla si falta cv_data o target_language (400)"""
+        payload = {
+            "target_language": "en"
+        }
+        res = client.post('/api/v1/translate-cv',
+                          data=json.dumps(payload),
+                          headers=auth_headers,
+                          content_type='application/json')
+        assert res.status_code == 400
+        assert res.json['status'] == 'error'
+
+    def test_translate_cv_unauthorized(self, client):
+        """Traducción falla si no está autenticado (401)"""
+        payload = {
+            "cv_data": {},
+            "target_language": "en"
+        }
+        res = client.post('/api/v1/translate-cv',
+                          data=json.dumps(payload),
+                          content_type='application/json')
+        assert res.status_code == 401
+

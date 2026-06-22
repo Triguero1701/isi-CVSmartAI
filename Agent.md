@@ -1,50 +1,64 @@
 # Agent.md: CVSmartAI Context & Project State
 
 ## 1. Project Overview
-**CVSmartAI** is a SaaS platform designed to optimize the CVs of students and junior profiles using AI, helping them bypass automated ATS filters by detecting missing keywords and calculating CV-to-Offer compatibility. The system focuses on tracking user evolution across multiple CV iterations to ensure progressive improvement. Recent updates include real-time feedback (SSE), automated job offer web scraping, visual CV diffing, dynamic AI CV rewriting using structured JSON, in-browser A4 PDF export, secure JWT authentication, and accurate CV version sequencing.
+**CVSmartAI** is a SaaS platform designed to optimize CVs of professionals and technical profiles using AI. It helps candidates bypass automated Applicant Tracking Systems (ATS) by detecting missing keywords and calculating CV-to-Offer compatibility. The system focuses on tracking user evolution across multiple CV iterations to ensure progressive improvement. Recent updates include real-time feedback (SSE), automated job offer web scraping via ScraperAPI, visual CV diffing, dynamic AI CV translation and rewriting using structured JSON, an on-screen classic single-page Harvard ATS CV template, and secure JWT authentication.
 
-## 2. Current Architecture & Folder Structure
-The project is built on a modular, fully operational architecture, recently migrated to a scalable stack:
+## 2. Project Architecture & Folder Structure
 
-* **`/backend/`**: Python Flask REST API.
-  * **Core Files**: `run.py` (entry point on `localhost:5000`), `requirements.txt` (Flask, psycopg2-binary, google-cloud-documentai, PyJWT, beautifulsoup4, requests, etc.), `.env` (Google Cloud credentials, `DATABASE_URL`, `JWT_SECRET_KEY`).
-  * **Application Factory**: `app/__init__.py` configures CORS, custom JSON datetime formatting, and PostgreSQL connections.
-  * **Endpoints (`app/routes.py`)**: 
-    - Full CRUD support for `/api/v1/users`, `/api/v1/skills`, and `/api/v1/logs`. All protected routes use a custom `@token_required` middleware.
-    - Custom Endpoint: `/api/v1/analyze` (POST) Pre-registers CV versions, utilizes Google Document AI for extraction, and evaluates CVs against job offers using Google Gemini. **Now streams real-time feedback via Server-Sent Events (SSE)**.
-    - Custom Endpoint: `/api/v1/improve-cv` (POST) Takes a CV version and missing skills, instructing Gemini to organically embed them while enforcing strict length limits via a structured JSON output (to prevent pagination overflow).
-    - Custom Endpoint: `/api/v1/job-offers/extract` (POST) Automates web scraping of job descriptions. Now utilizes **ScraperAPI** to bypass advanced anti-bot protections (like DataDome/Cloudflare), extracts HTML with `BeautifulSoup`, and formats structured data using Gemini. Includes defensive prompting to handle scraping errors gracefully.
-    - Custom Endpoints: `/api/v1/users/<id>/history` & `/api/v1/users/<id>/evolution` (GET) Return chronological history of a user's CV versions. Recently updated to allow admin-level multi-user visualization with strict chronological ordering (`ORDER BY id ASC, created_at ASC`).
-    - Auth Endpoints: `/api/v1/users/register` and `/api/v1/users/login` (POST) handle secure user signup and JWT token generation.
-  * **Integrations (`app/parser.py`, `app/llm_engine.py`)**: Connects to Google Document AI and Google Gemini with robust error handling and fallback models.
-  * **Testing (`tests/`)**: Robust validation suite (`test_api.py`, `test_db.py`, `conftest.py`). Uses an isolated, dynamically created PostgreSQL test database (`cvsmartai_test`) per session. 100% passing rates.
+The project follows a dockerized, multi-container client-server architecture:
 
-* **`/scripts/`**: Utility & Maintenance.
-  * Contains `setup_db.py`, which initializes the PostgreSQL database tables and populates realistic, evolutionary mock data (users, job offers, version progressions, analysis logs).
+### 2.1 Backend (`/backend/`)
+Built with Python 3.10 and Flask. It exposes REST API endpoints on port `5000` (mapped to port `5001` on the host).
+* **`app/__init__.py`**: Configures the Flask application, custom JSON provider, CORS, and PostgreSQL database connections.
+* **`app/routes.py`**: Handles API routes:
+  * `/api/v1/users/register` & `/api/v1/users/login` (POST): Secure authentication and JWT generation.
+  * `/api/v1/analyze` (POST): Processes a CV PDF (via Document AI OCR) and compares it semantically to a job description (via Gemini AI), streaming progress logs in real time via Server-Sent Events (SSE).
+  * `/api/v1/improve-cv` (POST): Integrates Gemini to suggest rewriting/adding missing keywords to the CV text.
+  * `/api/v1/translate-cv` (POST): Translates structured CV data to Spanish, English, German, or French using Gemini.
+  * `/api/v1/job-offers/extract` (POST): Extracts details of a job description from a plain text paste or scrapes public job URLs using ScraperAPI and BeautifulSoup4.
+  * `/api/v1/users/<id>/history` & `/api/v1/users/<id>/evolution` (GET): Retrieves the chronological list and scores of the user's CV versions.
+* **`app/parser.py`**: Integration with Google Document AI OCR for structured PDF text extraction.
+* **`app/llm_engine.py`**: Integrates Google Gemini API for semantic matching, keyword extraction, CV optimization, and translations.
+* **`tests/`**: Automated test suite containing unit and integration tests.
+  * `conftest.py`: Configures the testing environment and dynamically spins up/tears down a PostgreSQL test database (`cvsmartai_test`).
+  * `test_api.py`: Validates all REST API endpoints.
+  * `test_db.py`: Validates database schema migrations and dummy data seeding.
+  * `apilist.py`: Individual test script to verify Gemini API connection.
+* **`test_flask.py`** & **`test_http.py`**: Lightweight connection and HTTP requests test prototypes.
 
-* **`/frontend/`**: Modern React SPA (Single Page Application).
-  * Built with Vite, React Router, Recharts, and Lucide React. PDF Export powered by `html2pdf.js` using hidden off-screen React component rendering (`CVTemplateModern.jsx`).
-  * Utilizes Glassmorphism and CSS Modules (`Dashboard.module.css`, `Login.module.css`, etc.) for a premium UI, recently updated to a professional Light Theme aesthetic.
-  * Includes charts mapping the progressive `compatibility_score` evolution of candidates and an interactive modal to trigger automated CV improvements.
+### 2.2 Scripts (`/scripts/`)
+* **`setup_db.py`**: Database migration and seeding script. It creates PostgreSQL tables and populates them with realistic mock profiles, jobs, version histories, and metrics log data.
 
+### 2.3 Frontend (`/frontend/`)
+A modern Single Page Application (SPA) built with React 18 and Vite, running on port `5173` (mapped to port `5174` on the host).
+* **`src/components/`**: Core reusable visual elements:
+  * `Sidebar.jsx`: Unified navigation sidebar (Dashboard, Subir CV, Editar CV, Evolución, Historial).
+  * `VersionCompare.jsx`: Component to view differences (diffing) between successive CV versions.
+  * `UserEvolution.jsx`: Renders Recharts line graph showing the progression of the candidate's compatibility score.
+  * `templates/CVTemplateModern.jsx` & `CVTemplateModern.css`: The classic Harvard ATS serif CV layout. Styled with a locked height constraint (`296mm`) to ensure a single-page print budget, eliminating blank page overflow bugs.
+* **`src/pages/`**: Application views:
+  * `Dashboard.jsx`: Main hub rendering metrics, history grid, and evolution charts.
+  * `Login.jsx`: Secure access using JWT authentication.
+  * `JobOfferAnalyzer.jsx`: UI to upload a CV and paste a job offer/URL to start analysis.
+  * `CVEditor.jsx`: Interactive CV editor with forms on the left and a live updating Harvard ATS template on the right. Includes a flag-based translation modal (Castellano, Inglés, Alemán, Francés).
+  * `DirectEdit.jsx`: Access tab to upload a CV and immediately edit it without needing to paste a job offer description.
+* **`src/index.css`**: Defines the layout system, color palette, responsive grid, and custom scrollbars.
+* **`vite.config.js`**: Frontend configuration. Uses polling for Vite's HMR to sync host code edits into Docker.
 
-* **Root Files**:
-  * `docker-compose.yml`: Spins up the full stack: a `postgres:15-alpine` container (`cvsmartai_db`), the Flask `cvsmartai_backend` (port 5000), and the Vite React `cvsmartai_frontend` (port 5173).
-  * `README.md`: Central, comprehensive documentation for environment setup, deployment, Docker configuration, and initial DB population details.
+### 2.4 Project Configuration (Root)
+* **`docker-compose.yml`**: Defines three services: `db` (PostgreSQL 15), `backend` (Flask API), and `frontend` (React app).
+* **`Makefile`**: Exposes commands to build, start, stop, restart, clean containers, and access container shells.
+* **`README.md`**: Guide for environment setup, startup, database seeding, and testing.
 
-## 3. Database Schema (PostgreSQL)
-* **`users`**: `id` SERIAL (PK), `name` VARCHAR, `email` VARCHAR (UNIQUE), `password_hash` VARCHAR, `created_at` TIMESTAMP
-* **`skills_dictionary`**: `id` SERIAL (PK), `keyword` VARCHAR, `category` VARCHAR, `aliases` JSONB
-* **`job_offers`**: `id` SERIAL (PK), `title` VARCHAR, `description` TEXT, `keywords` JSONB, `created_at` TIMESTAMP
-* **`cv_versions`**: `id` SERIAL (PK), `user_id` INTEGER (FK), `job_offer_id` INTEGER (FK), `extracted_text` TEXT, `version_number` INTEGER, `compatibility_score` INTEGER, `created_at` TIMESTAMP
-* **`analysis_logs`**: `id` SERIAL (PK), `user_id` INTEGER (FK), `cv_version_id` INTEGER (FK), `compatibility_score` INTEGER, `processing_time_ms` INTEGER, `created_at` TIMESTAMP
-* **`feedback_logs`**: `id` SERIAL (PK), `cv_version_id` INTEGER (FK), `suggested_corrections` JSONB, `created_at` TIMESTAMP
+## 3. Database Schema (PostgreSQL 15)
+* **`users`**: id (SERIAL PK), name (VARCHAR), email (VARCHAR UNIQUE), password_hash (VARCHAR), created_at (TIMESTAMP).
+* **`skills_dictionary`**: id (SERIAL PK), keyword (VARCHAR), category (VARCHAR), aliases (JSONB).
+* **`job_offers`**: id (SERIAL PK), title (VARCHAR), description (TEXT), keywords (JSONB), created_at (TIMESTAMP).
+* **`cv_versions`**: id (SERIAL PK), user_id (FK), job_offer_id (FK), extracted_text (TEXT), version_number (INTEGER), compatibility_score (INTEGER), structured_data (JSONB), created_at (TIMESTAMP).
+* **`analysis_logs`**: id (SERIAL PK), user_id (FK), cv_version_id (FK), compatibility_score (INTEGER), processing_time_ms (INTEGER), created_at (TIMESTAMP).
+* **`feedback_logs`**: id (SERIAL PK), cv_version_id (FK), suggested_corrections (JSONB), created_at (TIMESTAMP).
 
-## 4. Key Metrics & OKRs
-* Ensure $\ge70\%$ of users improve their compatibility score after applying platform feedback (tracked via `cv_versions.version_number` vs `compatibility_score`).
-* Increase by 30% the overall sum of CVs that reach a compatibility matching score higher than 75%.
-
-## 5. Guidelines for AI Agents Developer Context
-1. **DB Access**: The system uses PostgreSQL via `psycopg2`. Always use explicit cursors (`cursor.execute`) and PostgreSQL's `%s` variable binding parameter format instead of SQLite's `?`.
-2. **Testing**: Any architectural additions require Pytest fixtures in `test_api.py`. The suite builds and tears down `cvsmartai_test` dynamically.
-3. **UI Updates**: All active UI feature development should prioritize the React SPA in `/frontend/`.
+## 4. Guidelines for Developers
+1. **DB Access**: The backend connects to PostgreSQL using `psycopg2`. Always use parameters (`%s`) for query parameters to prevent SQL injection.
+2. **Testing**: Running `pytest` inside the backend container runs the full suite against `cvsmartai_test`. Keep tests mocked to preserve Gemini token quotas.
+3. **Running Docker**: Use the `Makefile` command interface. For example, run `make up` to spin up services and `make db-shell` to inspect data.

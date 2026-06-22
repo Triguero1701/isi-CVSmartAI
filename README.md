@@ -1,104 +1,77 @@
 # CVSmartAI - SaaS de Optimización de CV con IA
 
-[![Licencia](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![React](https://img.shields.io/badge/react-18-61dafb.svg)](https://reactjs.org/)
+CVSmartAI es una plataforma de análisis y optimización de currículums (CVs) basada en inteligencia artificial. Utiliza **Google Document AI** para extraer el contenido de los currículums con máxima precisión y **Google Gemini** para evaluar semánticamente los perfiles contra ofertas laborales reales.
 
 ---
 
-## 📚 Documentación del Proyecto
-- **[Documentación Técnica (Hito 3)](TECHNICAL_DOCUMENTATION.md)**: Arquitectura detallada, diagramas Mermaid, Referencia de API y Modelo de Datos.
-- **[Manual de Usuario](USER_MANUAL.md)**: Guía de uso de la plataforma para el usuario final.
+## 🚀 Guía de Despliegue Directo (Makefile)
 
----
-
-## 🚀 Sobre el Proyecto
-CVSmartAI es una plataforma integral de análisis y optimización de currículums (CVs) basada en inteligencia artificial. Utiliza **Google Document AI** para extraer el contenido de los currículums con máxima precisión y **Google Gemini** para evaluar semánticamente los perfiles contra ofertas laborales reales, sugiriendo mejoras y permitiendo generar un CV optimizado dinámicamente en PDF.
-
----
-
-
-## 🛠️ Guía de Despliegue Paso a Paso
-
-### Requisitos Previos
 Asegúrate de tener instalado:
-- [Git](https://git-scm.com/)
 - [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/)
+- [Make](https://www.gnu.org/software/make/)
 
-### Paso 1: Clonar el Repositorio
-
-Abre tu terminal y clona el proyecto en tu máquina local:
-
+### 1. Clonar el repositorio
 ```bash
 git clone https://github.com/Triguero1701/isi-CVSmartAI.git
 cd isi-CVSmartAI
 ```
 
-### 2. Configuración de Credenciales
-El backend requiere credenciales para conectarse a Google Cloud y Gemini.
-1. **Archivo `.env`**: Coloca tu archivo `.env` en la carpeta `backend/`.
-2. **Credenciales de Google**: Guarda tu `service_account.json` en `backend/credentials/`.
+### 2. Configurar credenciales
+Antes de iniciar los contenedores, crea las credenciales en la carpeta `backend/`:
+1. Crea un archivo `backend/.env` (puedes copiar el archivo de referencia `backend/.env.example`) y configura tu clave de Gemini y Google Cloud.
+2. Guarda el archivo JSON de tu cuenta de servicio de Google Cloud en `backend/credentials/service_account.json`.
 
-### 3. Ejecución
-Desde la raíz del proyecto:
+### 3. Poner en marcha la plataforma
+Utiliza el `Makefile` desde la raíz para levantar la aplicación:
 ```bash
-docker compose up --build -d
+# Construir imágenes e iniciar contenedores
+make build
+
+# Iniciar contenedores en segundo plano
+make up
 ```
+
+Al iniciarse, el Makefile imprimirá las direcciones de acceso por consola:
+👉 **Web Frontend:** `http://localhost:5174`  
+👉 **API Backend:** `http://localhost:5001`  
 
 ### 4. Poblar la Base de Datos
-Indispensable para el primer uso y para ver datos en el Dashboard:
+Para poder visualizar datos históricos, perfiles de ejemplo y gráficos de evolución en el dashboard, debes inicializar y poblar la base de datos PostgreSQL:
 ```bash
+# Ejecutar scripts de migración y población en el contenedor
 docker exec cvsmartai_backend python scripts/setup_db.py
 ```
-*Esto creará un usuario administrador:*
+*Esto generará 20 perfiles de prueba y un usuario administrador:*
 - **Email:** `admin@cvsmartai.com`
 - **Contraseña:** `admin123`
 
 ---
 
-## 👨‍🏫 Instrucciones para la Evaluación (Profesor)
+## 🛠️ Comandos útiles del Makefile
 
-Por motivos de seguridad, las credenciales de Google Cloud (`.env` y `service_account.json`) no se han subido al repositorio público. El proyecto está preparado para su evaluación de dos formas:
+El `Makefile` automatiza la administración de los contenedores Docker:
+* `make up` - Inicia todos los contenedores en segundo plano.
+* `make build` - Reconstruye las imágenes de Docker e inicia los contenedores.
+* `make down` - Detiene y elimina los contenedores activos.
+* `make restart` - Reinicia los contenedores.
+* `make logs` - Visualiza los logs de ejecución en caliente.
+* `make clean` - Detiene los contenedores y elimina imágenes huérfanas.
+* `make clean-all` - Detiene contenedores, elimina volúmenes de base de datos e imágenes (¡Pérdida de datos!).
+* `make db-shell` - Entra a la consola psql interactiva de la base de datos PostgreSQL.
+* `make backend-shell` - Entra al terminal bash del contenedor del backend.
+* `make frontend-shell` - Entra al terminal shell del contenedor del frontend.
 
-### 1️⃣ Evaluación de Código y Lógica (Sin Facturación Google)
-Permite verificar que toda la lógica de la API y los endpoints funcionan mediante **Mocks**.
-1. Navega a la carpeta `backend/` y ejecute `pytest tests/ -v`.
-2. **Resultado**: Los tests pasarán al 100%, simulando la respuesta de Google Document AI y Gemini.
+---
 
-### 2️⃣ Evaluación Funcional Completa (Conexión Real en Google Cloud)
-Si desea probar el flujo real, siga estos pasos detallados:
+## 🧪 Ejecución de Pruebas (Testing)
 
-#### **A. Configurar el Procesador en Document AI**
-1. Ve a la **Consola de Google Cloud** e inicia sesión.
-2. Cree un **Nuevo Proyecto** y habilite la facturación.
-3. Busque **"Cloud Document AI API"** y pulse en **Habilitar**.
-4. Ve a **Document AI > Procesadores** y cree uno de tipo **"Document OCR"** (Región: `eu`).
-5. Anote el **ID del Proyecto** y el **ID del Procesador**.
-
-#### **B. Obtener credenciales de la Cuenta de Servicio (`service_account.json`)**
-1. En la consola, busque **"Cuentas de servicio"** en IAM.
-2. Cree una cuenta con el rol **Usuario de Document AI**.
-3. Añada una clave **JSON**, descárguela y colóquela en `backend/credentials/service_account.json`.
-
-#### **C. Habilitar Gemini AI y obtener API KEY**
-1. Busque **"Generative Language API"** en la consola de Google Cloud y pulse en **Habilitar**.
-2. Vaya a **API y servicios > Credenciales**.
-3. Pulse en **Crear credenciales > Clave de API**. Esta será su **`GEMINI_API_KEY`**.
-
-#### **D. Habilitar ScraperAPI (Opcional)**
-1. Regístrese en [ScraperAPI.com](https://www.scraperapi.com/).
-2. Copie su **API Key** y póngala en su `.env`.
-
-#### **E. Configuración del archivo `.env`**
-Cree un archivo `.env` en `backend/` con estos valores:
-
-| Variable | Dónde obtenerla |
-| :--- | :--- |
-| **`PROJECT_ID`** | ID de su proyecto de Google Cloud. |
-| **`PROCESSOR_ID`** | ID del procesador OCR creado en el paso A. |
-| **`LOCATION`** | Por defecto `eu`. |
-| **`GEMINI_API_KEY`** | Clave de API obtenida en el paso C. |
-| **`SCRAPERAPI_KEY`** | Clave obtenida en el paso D (Opcional). |
-| **`JWT_SECRET_KEY`** | Frase aleatoria para las sesiones. |
-
-
+Para validar la lógica de la API y base de datos mediante la suite de pruebas unitarias e integración de Pytest:
+1. Accede al contenedor del backend:
+   ```bash
+   make backend-shell
+   ```
+2. Ejecuta la suite de pruebas:
+   ```bash
+   pytest tests/ -v
+   ```
+*(Las pruebas realizarán mocks automáticos de las llamadas externas a Google Cloud Document AI y Gemini para ejecutarse de forma aislada en una base de datos efímera).*
