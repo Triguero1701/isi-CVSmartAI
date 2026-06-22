@@ -56,7 +56,6 @@ El `Makefile` automatiza la administración de los contenedores Docker:
 * `make restart` - Reinicia los contenedores.
 * `make logs` - Visualiza los logs de ejecución en caliente.
 * `make clean` - Detiene los contenedores y elimina imágenes huérfanas.
-* `make clean-all` - Detiene contenedores, elimina volúmenes de base de datos e imágenes (¡Pérdida de datos!).
 * `make setup-db` - Inicializa las tablas y puebla la base de datos con datos simulados de prueba.
 * `make db-shell` - Entra a la consola psql interactiva de la base de datos PostgreSQL.
 * `make backend-shell` - Entra al terminal bash del contenedor del backend.
