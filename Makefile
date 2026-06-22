@@ -1,4 +1,4 @@
-.PHONY: help build up down restart logs clean clean-all db-shell backend-shell frontend-shell
+.PHONY: help build up down restart logs clean clean-all db-shell backend-shell frontend-shell setup-db db-populate
 
 # Default target when just running 'make'
 help:
@@ -14,8 +14,11 @@ help:
 	@echo "  make clean       - Stop containers and remove unused networks/images"
 	@echo "  make clean-all   - WARNING: Stop containers, remove ALL volumes and images (Data loss!)"
 	@echo ""
-	@echo "Container Shells:"
+	@echo "Database Commands:"
+	@echo "  make setup-db       - Run migrations and populate database with fake data"
 	@echo "  make db-shell       - Access PostgreSQL database shell"
+	@echo ""
+	@echo "Container Shells:"
 	@echo "  make backend-shell  - Access Backend container bash shell"
 	@echo "  make frontend-shell - Access Frontend container bash shell"
 	@echo "========================================"
@@ -52,14 +55,13 @@ restart:
 logs:
 	docker compose logs -f
 
-# Clean up stopped containers, unused networks, and dangling images
-clean: down
-	docker system prune -f
+# Clean up stopped containers and unused networks of this project
+clean:
+	docker compose down --remove-orphans
 
-# Deep clean: WARNING! This will remove database volumes and all data
-clean-all: down
-	docker compose down -v --rmi all
-	docker system prune -a -f --volumes
+# Deep clean: WARNING! This will remove database volumes, data, and project images
+clean-all:
+	docker compose down -v --rmi all --remove-orphans
 
 # Access the database (psql)
 db-shell:
@@ -72,3 +74,9 @@ backend-shell:
 # Access the frontend shell
 frontend-shell:
 	docker exec -it cvsmartai_frontend /bin/sh
+
+# Populate/Setup the database
+setup-db:
+	docker exec cvsmartai_backend python /scripts/setup_db.py
+
+db-populate: setup-db

@@ -10,7 +10,7 @@ client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def _generate_with_fallback(prompt: str, response_json: bool = False):
     """
-    Helper function to attempt generation with gemini-2.5-flash and fallback to gemini-pro if not available.
+    Helper function to attempt generation with gemini-2.5-flash and fallback to gemini-2.0-flash or gemini-1.5-flash if not available.
     """
     config = None
     if response_json:
@@ -21,18 +21,23 @@ def _generate_with_fallback(prompt: str, response_json: bool = False):
             # Fallback if types cannot be imported
             config = {"response_mime_type": "application/json"}
 
-    try:
-        return client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config=config
-        )
-    except Exception as e:
-        print(f"Fallback to gemini-pro due to: {e}")
-        return client.models.generate_content(
-            model='gemini-pro',
-            contents=prompt
-        )
+    # List of models to try in sequence
+    models_to_try = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']
+    
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            return client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config
+            )
+        except Exception as e:
+            print(f"Failed to generate content with {model_name} (using fallback...): {e}", flush=True)
+            last_error = e
+            
+    # If all models fail, raise the last encountered exception
+    raise last_error
 
 def analyze_cv_with_gemini(cv_text: str, job_offer_text: str) -> dict:
     """

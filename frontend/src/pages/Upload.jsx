@@ -149,14 +149,19 @@ export default function Upload() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
+      let buffer = '';
       
       while (true) {
           const { value, done } = await reader.read();
           if (done) break;
           
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n\n');
-          for (let line of lines) {
+          buffer += decoder.decode(value, { stream: true });
+          let boundary = buffer.indexOf('\n');
+          
+          while (boundary !== -1) {
+              const line = buffer.substring(0, boundary).trim();
+              buffer = buffer.substring(boundary + 1);
+              
               if (line.startsWith('data: ')) {
                   const dataStr = line.substring(6);
                   if (dataStr) {
@@ -170,10 +175,11 @@ export default function Upload() {
                               alert('Error: ' + data.error);
                           }
                       } catch (e) {
-                          // partial chunk could cause JSON error, ideally we buffer it
+                          // Ignore partial lines if any
                       }
                   }
               }
+              boundary = buffer.indexOf('\n');
           }
       }
     } catch (error) {

@@ -241,21 +241,48 @@ def extract_job_offer():
             return jsonify({"status": "error", "message": str(e)}), 500
 
     url = data['url']
+    
+    # Rewrite LinkedIn URLs to use the clean guest API listing format if a Job ID is matched.
+    if "linkedin.com" in url.lower():
+        import re
+        match_view = re.search(r'/jobs/view/([0-9]+)', url)
+        match_query = re.search(r'[?&]currentJobId=([0-9]+)', url)
+        job_id = None
+        if match_view:
+            job_id = match_view.group(1)
+        elif match_query:
+            job_id = match_query.group(1)
+            
+        if job_id:
+            url = f"https://www.linkedin.com/jobs-guest/jobs/api/jobListing/{job_id}"
+            
+    api_key = os.environ.get('SCRAPER_API_KEY')
     try:
         from urllib.parse import urlencode
         
-        api_key = os.environ.get('SCRAPER_API_KEY')
         if not api_key or api_key == "PON_TU_CLAVE_AQUI":
             return jsonify({"status": "error", "message": "Falta configurar la clave de ScraperAPI en el backend (archivo .env)."}), 500
 
+        # InfoJobs fails to render JS on ScraperAPI and times out due to aggressive anti-bot protections.
+        # However, its content is available in the raw HTML without client-side rendering.
+        is_infojobs = "infojobs.net" in url.lower()
         payload = {
             'api_key': api_key, 
             'url': url,
-            'render': 'true' # Renderizar JS
+            'render': 'false' if is_infojobs else 'true'
         }
         scraper_url = 'http://api.scraperapi.com/?' + urlencode(payload)
         
         response = requests.get(scraper_url, timeout=60)
+        
+        # Check specifically for ScraperAPI plan restrictions (e.g. LinkedIn requires a paid plan)
+        if response.status_code == 403 and "paid plan" in response.text:
+            platform = "LinkedIn" if "linkedin.com" in url.lower() else "esta plataforma"
+            return jsonify({
+                "status": "error",
+                "message": f"La extracción desde {platform} requiere un plan de pago en ScraperAPI. Por favor, copia y pega la descripción de la oferta manualmente."
+            }), 400
+            
         response.raise_for_status()
         
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -301,8 +328,24 @@ def extract_job_offer():
             "job_offer_id": job_offer_id,
             "data": extracted_data
         })
+    except requests.RequestException as re:
+        error_msg = str(re)
+        if api_key:
+            error_msg = error_msg.replace(api_key, "CENSORED_KEY")
+        print(f"Scraping RequestException: {error_msg}", flush=True)
+        return jsonify({
+            "status": "error",
+            "message": "La plataforma de empleo (InfoJobs) bloqueó la extracción automática o ScraperAPI tuvo un problema. Por favor, copia y pega la descripción de la oferta manualmente."
+        }), 400
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        error_msg = str(e)
+        if api_key:
+            error_msg = error_msg.replace(api_key, "CENSORED_KEY")
+        print(f"Scraping general error: {error_msg}", flush=True)
+        return jsonify({
+            "status": "error",
+            "message": "No se pudo extraer la oferta automáticamente. Por favor, copia y pega el texto de la oferta manualmente."
+        }), 400
 
 # ----------------- USER HISTORY -----------------
 @api_bp.route('/users/<int:user_id>/history', methods=['GET'])

@@ -38,8 +38,8 @@ Al iniciarse, el Makefile imprimirá las direcciones de acceso por consola:
 ### 4. Poblar la Base de Datos
 Para poder visualizar datos históricos, perfiles de ejemplo y gráficos de evolución en el dashboard, debes inicializar y poblar la base de datos PostgreSQL:
 ```bash
-# Ejecutar scripts de migración y población en el contenedor
-docker exec cvsmartai_backend python scripts/setup_db.py
+# Inicializar y poblar la base de datos
+make setup-db
 ```
 *Esto generará 20 perfiles de prueba y un usuario administrador:*
 - **Email:** `admin@cvsmartai.com`
@@ -57,6 +57,7 @@ El `Makefile` automatiza la administración de los contenedores Docker:
 * `make logs` - Visualiza los logs de ejecución en caliente.
 * `make clean` - Detiene los contenedores y elimina imágenes huérfanas.
 * `make clean-all` - Detiene contenedores, elimina volúmenes de base de datos e imágenes (¡Pérdida de datos!).
+* `make setup-db` - Inicializa las tablas y puebla la base de datos con datos simulados de prueba.
 * `make db-shell` - Entra a la consola psql interactiva de la base de datos PostgreSQL.
 * `make backend-shell` - Entra al terminal bash del contenedor del backend.
 * `make frontend-shell` - Entra al terminal shell del contenedor del frontend.
