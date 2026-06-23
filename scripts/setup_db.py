@@ -61,6 +61,7 @@ def create_tables(cursor):
         extracted_text TEXT,
         version_number INTEGER NOT NULL,
         compatibility_score INTEGER CHECK(compatibility_score >= 0 AND compatibility_score <= 100),
+        structured_data JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
@@ -233,10 +234,36 @@ def generate_fake_data(cursor):
             # Each version is uploaded 1-5 days after the previous
             log_date = start_date + timedelta(days=version * random.randint(1, 5))
             
+            fake_cv_data = {
+                "personal_info": {
+                    "name": "Candidato de Prueba",
+                    "email": "candidato@email.com",
+                    "phone": "+34 600 000 000",
+                    "title": "Desarrollador de Software"
+                },
+                "summary": f"Desarrollador con experiencia en desarrollo web. Versión de CV {version}.",
+                "experience": [
+                    {
+                        "role": "Software Developer",
+                        "company": "Tech Solutions",
+                        "duration": "2022 - Presente",
+                        "description": "Desarrollo de APIs con Python y React. Colaboración en equipos ágiles."
+                    }
+                ],
+                "education": [
+                    {
+                        "degree": "Grado en Ingeniería Informática",
+                        "institution": "Universidad Tecnológica",
+                        "year": "2021"
+                    }
+                ],
+                "skills": ["Python", "SQL", "React", "Git"]
+            }
+
             # Insert cv_version
             cursor.execute(
-                "INSERT INTO cv_versions (user_id, job_offer_id, extracted_text, version_number, compatibility_score, created_at) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (user_id, current_job_offer_id, f"Texto extraído de la versión {version}...", version, score, log_date)
+                "INSERT INTO cv_versions (user_id, job_offer_id, extracted_text, version_number, compatibility_score, structured_data, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (user_id, current_job_offer_id, f"Texto extraído de la versión {version}...", version, score, Json(fake_cv_data), log_date)
             )
             cv_version_id = cursor.fetchone()[0]
 

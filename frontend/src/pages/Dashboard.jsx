@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import { fetchWithAuth } from '../utils/api';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Sidebar from '../components/Sidebar';
 import UserEvolution from '../components/UserEvolution';
 import styles from './Dashboard.module.css';
@@ -64,48 +64,71 @@ export default function Dashboard() {
 
         <div ref={dashboardRef} style={{padding: '10px'}}>
           <div className={styles.metricsGrid}>
-          <div className={`card glass ${styles.metricCard}`}>
-            <span className={styles.metricTitle}>Score Actual</span>
-            <div className={`${styles.metricValue} ${styles.glowing}`}>
-              {latestScore}%
+            <div className={styles.metricCard}>
+              <span className={styles.metricTitle}>Score Actual</span>
+              <div className={`${styles.metricValue} ${styles.glowing}`}>
+                {latestScore}%
+              </div>
+              <span className={styles.metricSub}>Último CV analizado</span>
             </div>
-            <span className={styles.metricSub}>Último CV analizado</span>
-          </div>
-          <div className={`card glass ${styles.metricCard}`}>
-            <span className={styles.metricTitle}>Versiones Evaluadas</span>
-            <div className={styles.metricValue}>
-              {history.length}
+            <div className={styles.metricCard}>
+              <span className={styles.metricTitle}>Versiones Evaluadas</span>
+              <div className={styles.metricValue}>
+                {history.length}
+              </div>
+              <span className={styles.metricSub}>Iteraciones totales</span>
             </div>
-            <span className={styles.metricSub}>Iteraciones totales</span>
           </div>
-        </div>
 
-        <div className={`card glass ${styles.chartCard}`}>
-            <h2 style={{marginBottom: '1rem'}}>Evolución del Score de Compatibilidad</h2>
+          <div className={styles.chartCard}>
+            <h2>Evolución del Score de Compatibilidad</h2>
             <ResponsiveContainer width="100%" height="85%">
-                <AreaChart data={history} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#58a6ff" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#58a6ff" stopOpacity={0}/>
-                        </linearGradient>
-                    </defs>
-                    <XAxis dataKey="name" stroke="#8b949e" />
-                    <YAxis stroke="#8b949e" domain={[0, 100]} />
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <Tooltip 
-                        contentStyle={{ backgroundColor: '#161b22', borderColor: '#30363d', color: '#c9d1d9' }}
-                        itemStyle={{ color: '#58a6ff' }}
-                    />
-                    <Area type="monotone" dataKey="score" stroke="#58a6ff" fillOpacity={1} fill="url(#colorScore)" />
-                </AreaChart>
+              <LineChart data={history} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#000000" 
+                  fontSize={12} 
+                  tickLine={true} 
+                  axisLine={{ stroke: '#000000', strokeWidth: 3 }} 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold' }} 
+                />
+                <YAxis 
+                  stroke="#000000" 
+                  fontSize={12} 
+                  tickLine={true} 
+                  axisLine={{ stroke: '#000000', strokeWidth: 3 }} 
+                  domain={[0, 100]} 
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold' }} 
+                />
+                <CartesianGrid strokeDasharray="4 4" stroke="#000000" strokeWidth={1.5} />
+                <Tooltip 
+                  contentStyle={{ 
+                    background: '#FFFFFF', 
+                    border: '3px solid #000000', 
+                    fontSize: 13, 
+                    boxShadow: 'none',
+                    color: '#000000',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 'bold'
+                  }}
+                  itemStyle={{ color: '#000000' }}
+                />
+                <Line 
+                  type="linear" 
+                  dataKey="score" 
+                  stroke="#000000" 
+                  strokeWidth={4}
+                  dot={{ r: 6, fill: '#00FF00', stroke: '#000000', strokeWidth: 3 }} 
+                  activeDot={{ r: 8, fill: '#00FF00', stroke: '#000000', strokeWidth: 3 }}
+                />
+              </LineChart>
             </ResponsiveContainer>
-        </div>
+          </div>
 
-        <div style={{ marginTop: '2rem' }}>
-          <h2 style={{marginBottom: '1rem', color: '#e6edf3'}}>Análisis Global de Usuarios</h2>
-          <UserEvolution />
-        </div>
+          <div style={{ marginTop: '2rem' }}>
+            <h2 style={{ marginBottom: '1rem' }}>Análisis Global de Usuarios</h2>
+            <UserEvolution />
+          </div>
         </div>
       </main>
     </div>

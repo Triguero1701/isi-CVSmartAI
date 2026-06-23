@@ -1,0 +1,57 @@
+:root {
+  /* Superficies */
+  --bg-page: #F4F4F4;        /* gris cemento claro */
+  --bg-surface: #FFFFFF;     /* blanco puro */
+  --bg-sidebar: #FFFFFF;     /* blanco puro */
+  --bg-hover: #000000;       /* hover invierte: fondo negro */
+  --bg-subtle: #F4F4F4;      /* gris cemento claro */
+
+  /* Texto */
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-tertiary: #000000;
+  --text-on-accent: #FFFFFF;
+
+  /* Acento */
+  --accent: #000000;
+  --accent-hover: #FFFFFF;
+  --accent-bg: #000000;
+  --accent-text: #FFFFFF;
+
+  /* Estados semánticos */
+  --success: #00FF00;        /* verde puro brillante para brutalismo */
+  --success-bg: #FFFFFF;
+  --warning: #99CCFF;        /* azul claro para brutalismo */
+  --warning-bg: #FFFFFF;
+  --danger: #FF0000;         /* rojo puro */
+  --danger-bg: #FFFFFF;
+
+  /* Bordes */
+  --border-subtle: #000000;
+  --border-default: #000000;
+
+  /* Radios (esquinas rectas forzadas) */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* Tipografía */
+  --font-sans: "Space Mono", "IBM Plex Mono", Courier, monospace;
+  --font-mono: "Space Mono", "IBM Plex Mono", Courier, monospace;
+  --font-heading: "Archivo Black", "Helvetica ExtraBold", Impact, sans-serif;
+
+  /* Sombras brutalistas duras sin difuminar (offset plano) */
+  --shadow-sm: 2px 2px 0px #000000;
+  --shadow-md: 4px 4px 0px #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

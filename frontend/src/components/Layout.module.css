@@ -1,0 +1,82 @@
+.appShell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+.sidebar {
+  background: #FFFFFF;
+  border-right: 3px solid #000000;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 900;
+  color: #000000;
+  padding: 12px 8px;
+  margin-bottom: 24px;
+  border: 3px solid #000000;
+  text-align: center;
+  background: #99CCFF; /* Light blue box for the brand logo */
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #000000;
+  cursor: pointer;
+  text-decoration: none;
+  border: 3px solid transparent;
+}
+
+.sidebarItem:hover {
+  background: #000000;
+  color: #FFFFFF;
+  border-color: #000000;
+}
+
+.sidebarItemActive {
+  background: #000000;
+  color: #FFFFFF;
+  border-color: #000000;
+}
+
+.main {
+  background: var(--bg-page);
+  padding: 32px 48px;
+  overflow-y: auto;
+}
+
+.pageHeader {
+  margin-bottom: 24px;
+  border-bottom: 3px solid #000000;
+  padding-bottom: 16px;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 900;
+  color: #000000;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  font-family: var(--font-mono);
+  color: #000000;
+  margin: 0;
+}
