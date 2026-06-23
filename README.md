@@ -62,16 +62,3 @@ El `Makefile` automatiza la administración de los contenedores Docker:
 * `make frontend-shell` - Entra al terminal shell del contenedor del frontend.
 
 ---
-
-## 🧪 Ejecución de Pruebas (Testing)
-
-Para validar la lógica de la API y base de datos mediante la suite de pruebas unitarias e integración de Pytest:
-1. Accede al contenedor del backend:
-   ```bash
-   make backend-shell
-   ```
-2. Ejecuta la suite de pruebas:
-   ```bash
-   pytest tests/ -v
-   ```
-*(Las pruebas realizarán mocks automáticos de las llamadas externas a Google Cloud Document AI y Gemini para ejecutarse de forma aislada en una base de datos efímera).*
