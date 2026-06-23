@@ -9,22 +9,63 @@ Este documento proporciona una visión profunda de la arquitectura, el modelo de
 El sistema sigue una arquitectura de microservicios dockerizados, comunicando un frontend moderno con un backend robusto que consume servicios de Inteligencia Artificial de Google Cloud.
 
 ```mermaid
-graph TD
-    User([Usuario Final]) -->|Interactúa| React[Frontend React + Vite]
-    React -->|Peticiones REST / SSE| Flask[Backend Flask API]
-    
-    subgraph "Docker Ecosystem"
-        Flask -->|Persistencia| Postgres[(PostgreSQL 15)]
-    end
-    
-    subgraph "Google Cloud Platform"
-        Flask -->|OCR / Extracción| DocAI[Document AI]
-        Flask -->|Análisis / Feedback| Gemini[Gemini 1.0 Pro]
-    end
-    
-    subgraph "Web Scraping"
-        Flask -->|Extracción de Ofertas| BS4[BeautifulSoup4]
-    end
+---
+config:
+  layout: fixed
+---
+flowchart LR
+ subgraph Capa_Presentacion["Capa de Presentación - Frontend"]
+        SPA["React 18 SPA"]
+        JWT_Store[("Local Storage: JWT")]
+  end
+ subgraph Capa_Pasarela["Capa de Pasarela"]
+        Gateway["Flask REST Router / API Gateway"]
+        Middleware["Middleware Interceptor JWT"]
+  end
+ subgraph Capa_Negocio["Capa de Negocio - Backend Core"]
+        S_Usuarios["Servicio de Usuarios<br>• Perfiles<br>• Credenciales<br>• Autenticación"]
+        S_IA["IA Procesamiento de CVs<br>• Lectura PDF<br>• Invocación OCR"]
+        S_Matching["Motor de Matching<br>• Compatibilidad semántica<br>• Modelos LLM"]
+        S_KPI["Tracker de KPIs<br>• Tiempos de procesamiento<br>• Scores históricos"]
+  end
+ subgraph Capa_Persistencia["Capa de Persistencia"]
+        DB[("PostgreSQL 15<br>• Datos relacionales<br>• Columnas JSONB<br>• Logs de auditoría")]
+  end
+ subgraph Servicios_Externos["Servicios Externos - SaaS e Infraestructura"]
+        Scraper["ScraperAPI"]
+        G_DocAI["Google Cloud Document AI"]
+        G_Gemini["Google Cloud Gemini"]
+  end
+    SPA <-- Lee/Guarda --> JWT_Store
+    Gateway --> Middleware
+    SPA <-- Peticiones HTTP Asíncronas<br>Bearer Token --> Gateway
+    Middleware -- Enruta --> S_Usuarios & S_IA & S_Matching & S_KPI
+    S_Usuarios <--> DB
+    S_IA <--> DB
+    S_Matching <--> DB
+    S_KPI <--> DB
+    S_IA == HTTPS ==> Scraper & G_DocAI
+    S_Matching L_S_Matching_G_Gemini_0@<== HTTPS ==> G_Gemini
+
+     SPA:::frontend
+     JWT_Store:::frontend
+     Gateway:::gateway
+     Middleware:::gateway
+     S_Usuarios:::core
+     S_IA:::core
+     S_Matching:::core
+     S_KPI:::core
+     DB:::database
+     Scraper:::external
+     G_DocAI:::external
+     G_Gemini:::external
+    classDef frontend fill:#d4ebf2,stroke:#1a73e8,stroke-width:2px,color:#000
+    classDef gateway fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef core fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef database fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef external fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
+
+    L_S_Matching_G_Gemini_0@{ animation: none }
 ```
 
 ---
