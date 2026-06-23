@@ -17,9 +17,12 @@ cd isi-CVSmartAI
 ```
 
 ### 2. Configurar credenciales
-Antes de iniciar los contenedores, crea las credenciales en la carpeta `backend/`:
-1. Crea un archivo `backend/.env` (puedes copiar el archivo de referencia `backend/.env.example`) y configura tu clave de Gemini y Google Cloud.
-2. Guarda el archivo JSON de tu cuenta de servicio de Google Cloud en `backend/credentials/service_account.json`.
+
+> 📄 Las instrucciones detalladas para obtener y configurar todas las credenciales están en [CONFIGURACIÓN_CREDENCIALES.md](./CONFIGURACIÓN_CREDENCIALES.md).
+
+En resumen, necesitas dos ficheros en la carpeta `backend/`:
+1. `backend/.env` — copia `backend/.env.example` y rellena tu clave de Gemini y Google Cloud.
+2. `backend/credentials/service_account.json` — archivo JSON de tu cuenta de servicio de Google Cloud.
 
 ### 3. Poner en marcha la plataforma
 Utiliza el `Makefile` desde la raíz para levantar la aplicación:
