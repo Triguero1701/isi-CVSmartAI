@@ -48,6 +48,9 @@ make setup-db
 - **Email:** `admin@cvsmartai.com`
 - **Contraseña:** `admin123`
 
+### 5. Acceso a la Aplicación
+Una vez todo en marcha, puedes acceder aqui a la aplicación: [Host](http://localhost:5174)
+
 ---
 
 ## 🛠️ Comandos útiles del Makefile
