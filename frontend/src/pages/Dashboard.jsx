@@ -3,7 +3,6 @@ import html2pdf from 'html2pdf.js';
 import { fetchWithAuth } from '../utils/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Sidebar from '../components/Sidebar';
-import UserEvolution from '../components/UserEvolution';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
@@ -123,11 +122,6 @@ export default function Dashboard() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
-
-          <div style={{ marginTop: '2rem' }}>
-            <h2 style={{ marginBottom: '1rem' }}>Análisis Global de Usuarios</h2>
-            <UserEvolution />
           </div>
         </div>
       </main>

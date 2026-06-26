@@ -80,3 +80,25 @@ setup-db:
 	docker exec cvsmartai_backend python /scripts/setup_db.py
 
 db-populate: setup-db
+
+# Test Commands
+.PHONY: test-unit test-integration test-load test-performance test-all
+
+test-unit:
+	@echo "Ejecutando Pruebas Unitarias..."
+	docker exec cvsmartai_backend pytest /app/tests/test_api.py /app/tests/test_db.py
+
+test-integration:
+	@echo "Ejecutando Pruebas de Integración..."
+	docker exec cvsmartai_backend pytest /app/tests/test_integration.py
+
+test-load:
+	@echo "Ejecutando Pruebas de Carga..."
+	docker exec cvsmartai_backend python /app/tests/load_test.py
+
+test-performance:
+	@echo "Ejecutando Pruebas de Rendimiento (SLAs)..."
+	docker exec cvsmartai_backend python /app/tests/performance_test.py
+
+test-all: test-unit test-integration test-performance test-load
+	@echo "Todas las pruebas completadas."
