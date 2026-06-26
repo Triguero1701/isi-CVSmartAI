@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from google import genai
 from dotenv import load_dotenv
 
@@ -10,7 +11,8 @@ client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def _generate_with_fallback(prompt: str, response_json: bool = False):
     """
-    Helper function to attempt generation with gemini-2.5-flash and fallback to gemini-2.0-flash or gemini-1.5-flash if not available.
+    Helper function to attempt generation with gemini-2.0-flash, gemini-1.5-flash, or other fallbacks if not available.
+    Implements a retry mechanism with exponential backoff for transient errors (503, 429).
     """
     config = None
     if response_json:
@@ -22,19 +24,32 @@ def _generate_with_fallback(prompt: str, response_json: bool = False):
             config = {"response_mime_type": "application/json"}
 
     # List of models to try in sequence
-    models_to_try = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']
+    models_to_try = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']
     
     last_error = None
     for model_name in models_to_try:
-        try:
-            return client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config=config
-            )
-        except Exception as e:
-            print(f"Failed to generate content with {model_name} (using fallback...): {e}", flush=True)
-            last_error = e
+        retries = 3
+        backoff = 1.0
+        for attempt in range(retries):
+            try:
+                return client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=config
+                )
+            except Exception as e:
+                err_str = str(e)
+                # Check for transient/quota errors: 503 (UNAVAILABLE), 429 (ResourceExhausted), etc.
+                is_transient = any(code in err_str for code in ["503", "429", "UNAVAILABLE", "ResourceExhausted", "high demand"])
+                
+                if is_transient and attempt < retries - 1:
+                    print(f"Transient Gemini API error ({model_name}, attempt {attempt+1}/{retries}): {e}. Retrying in {backoff}s...", flush=True)
+                    time.sleep(backoff)
+                    backoff *= 2.0
+                else:
+                    print(f"Failed to generate content with {model_name}: {e}", flush=True)
+                    last_error = e
+                    break # Break out of the retry loop to try the next model
             
     # If all models fail, raise the last encountered exception
     raise last_error

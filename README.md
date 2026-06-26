@@ -55,7 +55,7 @@ Una vez todo en marcha, puedes acceder aqui a la aplicación: [Host](http://loca
 
 ## 🛠️ Comandos útiles del Makefile
 
-El `Makefile` automatiza la administración de los contenedores Docker:
+El `Makefile` automatiza la administración de los contenedores Docker y las pruebas:
 * `make up` - Inicia todos los contenedores en segundo plano.
 * `make build` - Reconstruye las imágenes de Docker e inicia los contenedores.
 * `make down` - Detiene y elimina los contenedores activos.
@@ -66,5 +66,21 @@ El `Makefile` automatiza la administración de los contenedores Docker:
 * `make db-shell` - Entra a la consola psql interactiva de la base de datos PostgreSQL.
 * `make backend-shell` - Entra al terminal bash del contenedor del backend.
 * `make frontend-shell` - Entra al terminal shell del contenedor del frontend.
+* `make test-unit` - Ejecuta las pruebas unitarias con pytest.
+* `make test-integration` - Ejecuta las pruebas de integración.
+* `make test-performance` - Ejecuta la prueba de SLAs de rendimiento.
+* `make test-load` - Ejecuta la prueba de carga concurrente.
+* `make test-all` - Ejecuta de manera secuencial todas las suites de prueba.
+
+---
+
+## 🧪 Pruebas Automatizadas
+
+La plataforma dispone de cuatro suites de pruebas automatizadas que se ejecutan dentro del contenedor de backend:
+
+1. **Pruebas Unitarias (`make test-unit`)**: Validan el comportamiento aislado de las rutas de la API y de la persistencia de datos básica (utiliza mocks para Google Cloud Document AI y Gemini).
+2. **Pruebas de Integración (`make test-integration`)**: Simulan un ciclo de vida de usuario end-to-end (registro, login, extracción de oferta, análisis de CV y persistencia del editor de currículum).
+3. **Pruebas de Rendimiento (SLAs) (`make test-performance`)**: Envían peticiones consecutivas a los endpoints críticos (`/health`, `register`, `login`, `history`, `skills`) y aseguran que los tiempos promedio de respuesta estén por debajo de los SLAs configurados.
+4. **Pruebas de Carga (`make test-load`)**: Ejecutan 10 hilos concurrentes simulando usuarios enviando peticiones continuas durante 5 segundos para medir la robustez, porcentaje de éxito y peticiones por segundo (RPS) que soporta el backend.
 
 ---
